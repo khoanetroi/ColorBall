@@ -4,10 +4,11 @@ import * as THREE from 'three';
 import { RigidBody, RapierRigidBody, BallCollider } from '@react-three/rapier';
 import { type BallColorCode, getHexColor } from '../store/ColorSystem';
 import { useGameStore } from '../store/GameStore';
+import { RoundedBox } from '@react-three/drei';
 
 export const Ball = ({ color, position, id }: { color: BallColorCode; position: [number, number, number]; id: string }) => {
   const rigidBodyRef = useRef<RapierRigidBody>(null);
-  const ballMeshRef = useRef<THREE.Mesh>(null);
+  const ballMeshRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   
   const draggedBallId = useGameStore((state) => state.draggedBallId);
@@ -16,7 +17,6 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Don't despawn if the player is holding it
       if (!isCurrentlyDragged) {
         removeBall(id);
       }
@@ -26,7 +26,6 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
 
   useFrame((state, delta) => {
     if (isCurrentlyDragged && rigidBodyRef.current) {
-      // Use (0,0) for center-view dragging in FPS
       const vec = new THREE.Vector3(0, 0, 0.5);
       vec.unproject(state.camera);
       vec.sub(state.camera.position).normalize();
@@ -38,21 +37,16 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
       const posVector = new THREE.Vector3(currentPos.x, currentPos.y, currentPos.z);
       const diff = new THREE.Vector3().subVectors(targetPos, posVector);
       
-      // Use dynamic velocity spring to pull ball towards target.
-      // This allows Rapier to naturally handle wall collisions and prevent clipping.
       rigidBodyRef.current.setLinvel({
         x: diff.x * 12,
         y: diff.y * 12,
         z: diff.z * 12
       }, true);
       
-      // Dampen rotation while holding
       rigidBodyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
     }
 
-    if (!ballMeshRef.current) {
-      return;
-    }
+    if (!ballMeshRef.current) return;
 
     const velocity = rigidBodyRef.current?.linvel();
     const speed = velocity ? Math.sqrt((velocity.x * velocity.x) + (velocity.y * velocity.y) + (velocity.z * velocity.z)) : 0;
@@ -83,49 +77,107 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
       userData={{ name: 'ball', color, id }}
     >
       <BallCollider args={[0.38]} />
-      <mesh
+      <group
         ref={ballMeshRef}
-        position={[0, 0.08, 0]}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
-        castShadow
-        receiveShadow
       >
-        <sphereGeometry args={[0.3, 32, 32]} />
-        <meshStandardMaterial
-          color={getHexColor(color)}
-          roughness={1.0}
-          metalness={0.0}
-        />
-
-        {/* Blush / Cheek Details */}
-        <mesh position={[0.12, 0.05, 0.26]} scale={0.4}>
-          <sphereGeometry args={[0.08, 16, 16]} />
-          <meshBasicMaterial color="#fda4af" />
-        </mesh>
-        <mesh position={[-0.12, 0.05, 0.26]} scale={0.4}>
-          <sphereGeometry args={[0.08, 16, 16]} />
-          <meshBasicMaterial color="#fda4af" />
+        {/* Main Body */}
+        <mesh castShadow receiveShadow>
+          <sphereGeometry args={[0.3, 32, 32]} />
+          <meshStandardMaterial
+            color={getHexColor(color)}
+            roughness={0.2}
+            metalness={0.0}
+            emissive={getHexColor(color)}
+            emissiveIntensity={0.2}
+          />
         </mesh>
 
-        {/* Left Ear */}
-        <mesh position={[-0.18, 0.24, 0]} rotation={[0, 0, 0.3]}>
-          <coneGeometry args={[0.12, 0.25, 16]} />
-          <meshStandardMaterial color={getHexColor(color)} roughness={1.0} metalness={0.0} />
+        {/* --- KAWAII FACE --- */}
+        <group position={[0, 0.05, 0.28]}>
+          {/* Eyes */}
+          <group position={[-0.14, 0, 0]}>
+             <mesh rotation={[0.1, 0, 0]}>
+                <sphereGeometry args={[0.07, 16, 16]} scale={[1, 1.2, 0.2]} />
+                <meshStandardMaterial color="#020617" roughness={0} />
+             </mesh>
+             <mesh position={[0.02, 0.03, 0.02]}>
+                <sphereGeometry args={[0.025, 8, 8]} />
+                <meshBasicMaterial color="white" />
+             </mesh>
+             <mesh position={[-0.02, -0.02, 0.02]}>
+                <sphereGeometry args={[0.012, 8, 8]} />
+                <meshBasicMaterial color="white" />
+             </mesh>
+          </group>
+
+          <group position={[0.14, 0, 0]}>
+             <mesh rotation={[0.1, 0, 0]}>
+                <sphereGeometry args={[0.07, 16, 16]} scale={[1, 1.2, 0.2]} />
+                <meshStandardMaterial color="#020617" roughness={0} />
+             </mesh>
+             <mesh position={[0.02, 0.03, 0.02]}>
+                <sphereGeometry args={[0.025, 8, 8]} />
+                <meshBasicMaterial color="white" />
+             </mesh>
+             <mesh position={[-0.02, -0.02, 0.02]}>
+                <sphereGeometry args={[0.012, 8, 8]} />
+                <meshBasicMaterial color="white" />
+             </mesh>
+          </group>
+
+          {/* :3 Mouth */}
+          <group position={[0, -0.08, 0]}>
+             <mesh position={[-0.04, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+                <torusGeometry args={[0.04, 0.012, 12, 24, Math.PI]} />
+                <meshStandardMaterial color="#334155" />
+             </mesh>
+             <mesh position={[0.04, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+                <torusGeometry args={[0.04, 0.012, 12, 24, Math.PI]} />
+                <meshStandardMaterial color="#334155" />
+             </mesh>
+          </group>
+        </group>
+
+        {/* Blush */}
+        <mesh position={[0.2, -0.02, 0.24]} scale={0.4}>
+          <sphereGeometry args={[0.1, 16, 16]} scale={[1, 0.6, 0.2]} />
+          <meshBasicMaterial color="#fda4af" transparent opacity={0.6} />
         </mesh>
+        <mesh position={[-0.2, -0.02, 0.24]} scale={0.4}>
+          <sphereGeometry args={[0.1, 16, 16]} scale={[1, 0.6, 0.2]} />
+          <meshBasicMaterial color="#fda4af" transparent opacity={0.6} />
+        </mesh>
+
+        {/* Ears */}
+        <group position={[-0.18, 0.22, 0]} rotation={[0, 0, 0.4]}>
+          <mesh castShadow>
+             <sphereGeometry args={[0.15, 16, 16]} scale={[1, 1.2, 0.4]} />
+             <meshStandardMaterial color={getHexColor(color)} roughness={0.4} />
+          </mesh>
+          <mesh position={[0, -0.02, 0.05]} scale={[0.7, 0.8, 0.1]}>
+             <sphereGeometry args={[0.12, 16, 16]} />
+             <meshStandardMaterial color="#fecaca" />
+          </mesh>
+        </group>
         
-        {/* Right Ear */}
-        <mesh position={[0.18, 0.24, 0]} rotation={[0, 0, -0.3]}>
-          <coneGeometry args={[0.12, 0.25, 16]} />
-          <meshStandardMaterial color={getHexColor(color)} roughness={1.0} metalness={0.0} />
-        </mesh>
+        <group position={[0.18, 0.22, 0]} rotation={[0, 0, -0.4]}>
+          <mesh castShadow>
+             <sphereGeometry args={[0.15, 16, 16]} scale={[1, 1.2, 0.4]} />
+             <meshStandardMaterial color={getHexColor(color)} roughness={0.4} />
+          </mesh>
+          <mesh position={[0, -0.02, 0.05]} scale={[0.7, 0.8, 0.1]}>
+             <sphereGeometry args={[0.12, 16, 16]} />
+             <meshStandardMaterial color="#fecaca" />
+          </mesh>
+        </group>
 
-        {/* Little Tail */}
-        <mesh position={[0, -0.05, -0.28]}>
-          <sphereGeometry args={[0.08, 16, 16]} />
+        <mesh position={[0, -0.1, -0.28]}>
+          <sphereGeometry args={[0.1, 16, 16]} />
           <meshStandardMaterial color="#ffffff" roughness={1.0} metalness={0.0} />
         </mesh>
-      </mesh>
+      </group>
     </RigidBody>
   );
 };

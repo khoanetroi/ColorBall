@@ -37,6 +37,56 @@ const HeartMesh = ({ scale = 1, color = "#f43f5e" }) => (
   </group>
 );
 
+const ChatBubble = ({ text, color, flash, rotation = [0, 0, 0] }: { text: string; color: string; flash: 'success' | 'error' | null; rotation?: [number, number, number] }) => {
+  const bubbleRef = useRef<THREE.Group>(null);
+  useFrame((state) => {
+    if (bubbleRef.current) {
+      bubbleRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.1;
+      bubbleRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 1.2) * 0.05;
+    }
+  });
+
+  return (
+    <group ref={bubbleRef} rotation={rotation}>
+      {/* Bubble Tail */}
+      <mesh position={[0, -0.6, 0]} rotation={[0, 0, Math.PI / 4]}>
+        <coneGeometry args={[0.2, 0.6, 4]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+      
+      {/* Main Bubble */}
+      <RoundedBox args={[2.8, 1.2, 0.4]} radius={0.3} smoothness={4} castShadow>
+        <meshStandardMaterial color="#ffffff" roughness={0.2} />
+      </RoundedBox>
+
+      {/* Content */}
+      {flash === 'success' ? (
+        <group position={[0, 0, 0.22]}>
+          <HeartMesh scale={6} />
+          <Text position={[0, -0.4, 0]} fontSize={0.15} color="#451a03" fontWeight="900">YUMMY!</Text>
+        </group>
+      ) : flash === 'error' ? (
+        <group position={[0, 0, 0.22]}>
+          <Text fontSize={0.8} position={[0, 0.1, 0]}>😿</Text>
+          <Text position={[0, -0.4, 0]} fontSize={0.15} color="#b91c1c" fontWeight="900">NOT THAT!</Text>
+        </group>
+      ) : (
+        <group position={[0, 0, 0.22]}>
+          <Text position={[0, 0.25, 0]} fontSize={0.18} color="#7c2d12" fontWeight="900">I WANT...</Text>
+          <Text position={[0, -0.1, 0]} fontSize={0.32} color={color} fontWeight="900" strokeWidth={0.02} strokeColor="#ffffff">
+            {text}!
+          </Text>
+          {/* Small Icon of the color */}
+          <mesh position={[0, -0.45, 0]}>
+            <sphereGeometry args={[0.12, 16, 16]} />
+            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
+          </mesh>
+        </group>
+      )}
+    </group>
+  );
+};
+
 function MachineReceiverCore({ position, rotation = [0, 0, 0], level, gameState, addPoint, removeBall }: ReceiverProps) {
   const targetColors = useMemo(() => getTargetColorsForLevel(level), [level]);
   const [targetColor, setTargetColor] = useState<BallColorCode>(() => pickRandomTarget(targetColors));
@@ -135,6 +185,11 @@ function MachineReceiverCore({ position, rotation = [0, 0, 0], level, gameState,
 
   return (
     <group ref={machineRef} position={position} rotation={rotation} userData={{ name: 'cat-feeder' }}>
+      {/* Speech Bubble / Chat Bubble */}
+      <group position={[1.8, 2.5, 0.6]}>
+         <ChatBubble text={targetLabel} color={targetHex} flash={flash} />
+      </group>
+
       <mesh position={[0, -1.2, 0]} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
          <cylinderGeometry args={[2.2, 2.4, 0.8, 32]} /><meshStandardMaterial color="#b91c1c" roughness={1.0} />
          <mesh position={[0, 0.41, 0]}><torusGeometry args={[2.1, 0.08, 12, 48]} /><meshStandardMaterial color="#fbbf24" metalness={1} /></mesh>
@@ -197,6 +252,12 @@ function MachineReceiverCore({ position, rotation = [0, 0, 0], level, gameState,
           </Text>
         </group>
       </group>
+
+      <RigidBody type="fixed" colliders={false}><CuboidCollider args={[2.0, 2.0, 2.0]} position={[0, 0, 0]}/><CuboidCollider args={[2.0, 0.4, 2.0]} position={[0, -1.0, 0]}/></RigidBody>
+      <RigidBody type="fixed" sensor colliders={false}><CuboidCollider args={[1.2, 0.8, 1.0]} position={[0, -0.2, 1.5]} onIntersectionEnter={handleIntersect}/></RigidBody>
+    </group>
+  );
+}
 
       <RigidBody type="fixed" colliders={false}><CuboidCollider args={[2.0, 2.0, 2.0]} position={[0, 0, 0]}/><CuboidCollider args={[2.0, 0.4, 2.0]} position={[0, -1.0, 0]}/></RigidBody>
       <RigidBody type="fixed" sensor colliders={false}><CuboidCollider args={[1.2, 0.8, 1.0]} position={[0, -0.2, 1.5]} onIntersectionEnter={handleIntersect}/></RigidBody>
