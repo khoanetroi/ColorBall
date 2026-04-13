@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState, ReactNode } from 'react';
 import * as THREE from 'three';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { RoundedBox, Sky, Stars, Sparkles } from '@react-three/drei';
@@ -13,6 +13,14 @@ import { LevelProps } from './components/LevelProps';
 import { GameState, useGameStore } from './store/GameStore';
 import { FirstPersonControls } from './components/FirstPersonControls';
 import { InteractionSystem } from './components/InteractionSystem';
+import { VRPlayer } from './components/VRPlayer';
+import { createXRStore, XR } from '@react-three/xr';
+
+const xrStore = createXRStore({
+  depthSensing: true,
+  handTracking: true,
+  layers: true,
+});
 
 function GameClock() {
   const tick = useGameStore((state) => state.tick);
@@ -20,66 +28,6 @@ function GameClock() {
   useFrame((_, delta) => {
     tick(delta);
   });
-
-  return null;
-}
-
-function VRSessionController({ requestId }: { requestId: number }) {
-  const { gl } = useThree();
-
-  useEffect(() => {
-    if (requestId === 0) {
-      return;
-    }
-
-    let cancelled = false;
-
-    const openVR = async () => {
-      if (typeof navigator === 'undefined' || !('xr' in navigator) || !window.isSecureContext) {
-        return;
-      }
-
-      const xr = (navigator as Navigator & {
-        xr?: {
-          requestSession: (mode: 'immersive-vr', options?: XRSessionInit) => Promise<XRSession>;
-        };
-      }).xr;
-
-      if (!xr || gl.xr.isPresenting) {
-        return;
-      }
-
-      try {
-        const session = await xr.requestSession('immersive-vr', {
-          optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking', 'layers'],
-        });
-
-        if (cancelled) {
-          await session.end();
-          return;
-        }
-
-        gl.xr.enabled = true;
-        session.addEventListener(
-          'end',
-          () => {
-            gl.xr.enabled = false;
-          },
-          { once: true }
-        );
-        void gl.xr.setSession(session);
-      } catch (error) {
-        console.error('Unable to open VR session', error);
-        gl.xr.enabled = false;
-      }
-    };
-
-    void openVR();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [gl, requestId]);
 
   return null;
 }
@@ -373,15 +321,9 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
 
 export default function App() {
   const balls = useGameStore((state) => state.balls);
-  const [vrRequestId, setVrRequestId] = useState(0);
 
   const handleOpenVR = () => {
-    if (typeof window === 'undefined' || !window.isSecureContext || !('xr' in navigator)) {
-      window.alert('VR mode needs a secure browser with WebXR support.');
-      return;
-    }
-
-    setVrRequestId((value) => value + 1);
+    xrStore.enterVR();
   };
 
   return (
@@ -397,34 +339,36 @@ export default function App() {
       >
         <color attach="background" args={['#d8ecff']} />
         <fog attach="fog" args={['#d8ecff', 30, 120]} />
-        <VRSessionController requestId={vrRequestId} />
-        <GameClock />
         
-          <WorldMenu />
+        <XR store={xrStore}>
+          <VRPlayer />
+          <GameClock />
+          
+            <WorldMenu />
 
-          <Suspense fallback={null}>
-            <Physics gravity={[0, -9.81, 0]} timeStep={1 / 60}>
-              <InteractionSystem />
-              <FirstPersonControls />
-              
-              <GlobalEnvironment />
-              <FloatingIsland />
+            <Suspense fallback={null}>
+              <Physics gravity={[0, -9.81, 0]} timeStep={1 / 60}>
+                <InteractionSystem />
+                <FirstPersonControls />
+                
+                <GlobalEnvironment />
+                <FloatingIsland />
 
-              <SceneDecor />
-              <LevelProps />
+                <SceneDecor />
+                <LevelProps />
 
-              {/* Machine Placements on the Island */}
-              <MachineReceiver position={[10, 0.45, -6]} rotation={[0, -Math.PI / 4, 0]} />
-              <MachineMerger position={[0, 1.05, -12]} />
-              <BallSpawner position={[-10, 0.45, -6]} rotation={[0, Math.PI / 4, 0]} />
+                {/* Machine Placements on the Island */}
+                <MachineReceiver position={[10, 0.45, -6]} rotation={[0, -Math.PI / 4, 0]} />
+                <MachineMerger position={[0, 1.05, -12]} />
+                <BallSpawner position={[-10, 0.45, -6]} rotation={[0, Math.PI / 4, 0]} />
 
-              {balls.map((ball) => (
-                <Ball key={ball.id} color={ball.color} position={ball.position} id={ball.id} />
-              ))}
+                {balls.map((ball) => (
+                  <Ball key={ball.id} color={ball.color} position={ball.position} id={ball.id} />
+                ))}
 
-            </Physics>
-          </Suspense>
-
+              </Physics>
+            </Suspense>
+        </XR>
       </Canvas>
     </div>
   );
