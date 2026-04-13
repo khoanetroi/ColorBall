@@ -13,7 +13,8 @@ import { LevelProps } from './components/LevelProps';
 import { GameState, useGameStore } from './store/GameStore';
 import { FirstPersonControls } from './components/FirstPersonControls';
 import { InteractionSystem } from './components/InteractionSystem';
-import { createXRStore, XR } from '@react-three/xr';
+import { WristHUD } from './components/WristHUD';
+import { createXRStore, XR, XROrigin } from '@react-three/xr';
 
 const xrStore = createXRStore({
   depthSensing: true,
@@ -326,12 +327,12 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
   };
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" style={{ zIndex: 0 }}>
       {!isPresenting && (
-        <>
-          <div className="crosshair"></div>
-          <GameHUD onOpenVR={handleOpenVR} />
-        </>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 1000, pointerEvents: 'none' }}>
+           <div className="crosshair"></div>
+           <GameHUD onOpenVR={handleOpenVR} />
+        </div>
       )}
 
       <Canvas
@@ -344,6 +345,9 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
         <fog attach="fog" args={['#d8ecff', 30, 120]} />
 
         <XR store={xrStore}>
+          <XROrigin position={[0, 0, 0]} />
+          <WristHUD />
+          
           <GameClock />
 
           <WorldMenu position={[-14, 4, 4]} rotation={[0, Math.PI / 2, 0]} scale={1.3} />
