@@ -240,8 +240,8 @@ function MachineReceiverCore({ position, rotation = [0, 0, 0], level, gameState,
             <Text position={[0, 0, 0.02]} fontSize={0.25} color="#451a03" fontWeight="900">3</Text>
           </group>
 
-          <Text position={[0.2, 0.4, 0.1]} fontSize={0.32} color="#fcd34d" fontWeight="900">KITTEN FEAST 🐱</Text>
-          <Text position={[0.2, 0.1, 0.1]} fontSize={0.20} color="#ffffff" fontWeight="bold">SERVE THE GOURMET</Text>
+          <Text position={[0.1, 0.4, 0.1]} fontSize={0.32} color="#fcd34d" fontWeight="900" anchorX="center">KITTEN FEAST 🐱</Text>
+          <Text position={[0.1, 0.1, 0.1]} fontSize={0.20} color="#ffffff" fontWeight="bold" anchorX="center">SERVE THE GOURMET</Text>
           
           <mesh position={[0, -0.2, 0.1]}>
              <boxGeometry args={[2.5, 0.02, 0.01]} />

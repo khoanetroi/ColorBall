@@ -343,8 +343,8 @@ export const BallSpawner = ({
           </group>
           
           {/* Main Title */}
-          <Text position={[0.2, 0.35, 0.1]} fontSize={0.32} color="#f0abfc" fontWeight="900">CANDY SHOP 🍭</Text>
-          <Text position={[0.2, 0.05, 0.1]} fontSize={0.20} color="#ffffff" fontWeight="bold">SPAWN CANDY</Text>
+          <Text position={[0.1, 0.35, 0.1]} fontSize={0.32} color="#f0abfc" fontWeight="900" anchorX="center">CANDY SHOP 🍭</Text>
+          <Text position={[0.1, 0.05, 0.1]} fontSize={0.20} color="#ffffff" fontWeight="bold" anchorX="center">SPAWN CANDY</Text>
           
           {/* Instructions */}
           <mesh position={[0, -0.25, 0.1]}>
