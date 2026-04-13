@@ -19,8 +19,8 @@ export function FirstPersonControls() {
 
   // VR Inputs
   const inputSources = useXRInputSources();
-  const leftController = inputSources.find(s => s.inputSource.handedness === 'left');
-  const rightController = inputSources.find(s => s.inputSource.handedness === 'right');
+  const leftController = inputSources.find((s: any) => s.inputSource.handedness === 'left');
+  const rightController = inputSources.find((s: any) => s.inputSource.handedness === 'right');
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

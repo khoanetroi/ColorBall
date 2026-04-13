@@ -54,13 +54,13 @@ export function InteractionSystem() {
   }, [scene.children, raycaster, requestCandyDispense, setDraggedBallId]);
 
   // 1. VR Controller Interactions
-  useXREvent('selectstart', (e) => {
-    const controller = e.target;
-    const inputSource = e.inputSource;
+  useXREvent('selectstart', (e: any) => {
+    const inputSourceState = e.data; // In v6, e.data is the XRInputSourceState
+    const inputSource = inputSourceState.inputSource;
     
-    // Get controller world direction
-    const origin = new THREE.Vector3().setFromMatrixPosition(controller.matrixWorld);
-    const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(controller.quaternion);
+    // Get world direction based on the controller state
+    const origin = new THREE.Vector3().setFromMatrixPosition(inputSourceState.object.matrixWorld);
+    const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(inputSourceState.object.quaternion);
     
     handleInteraction(origin, direction, inputSource);
   });
