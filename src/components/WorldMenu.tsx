@@ -1,10 +1,9 @@
-import { GroupProps } from '@react-three/fiber';
 import { RoundedBox, Text as DreiText } from '@react-three/drei';
 import { GameState, useGameStore } from '../store/GameStore';
 
 const clampProgress = (value: number) => Math.min(1, Math.max(0, value));
 
-export function WorldMenu(props: GroupProps) {
+export function WorldMenu(props: any) {
   const score = useGameStore((state) => state.score);
   const targetScore = useGameStore((state) => state.targetScore);
   const timeLeft = useGameStore((state) => state.timeLeft);

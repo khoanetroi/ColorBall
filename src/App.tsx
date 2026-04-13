@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useRef } from 'react';
+import { Suspense, useMemo, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { RoundedBox, Sky, Stars, Sparkles } from '@react-three/drei';
@@ -318,7 +318,8 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
   );
 }export default function App() {
   const balls = useGameStore((state) => state.balls);
-  const isPresenting = xrStore.use((state) => state.session !== null);
+  const [isPresenting, setIsPresenting] = useState(xrStore.getState().session !== null);
+  useEffect(() => xrStore.subscribe((state: any) => setIsPresenting(state.session !== null)), []);
 
   const handleOpenVR = () => {
     xrStore.enterVR();
