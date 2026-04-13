@@ -139,7 +139,7 @@ export function WorldMenu() {
           <meshStandardMaterial color="#fef3c7" roughness={0.3} />
         </RoundedBox>
         <DreiText position={[0, 0, 0.06]} fontSize={0.15} color="#78350f" fontWeight="900">
-          1. GET FEED (SILO) ➔ 2. MIX (FROG) ➔ 3. SERVE (CAT) = 🍬 TARGET
+          1. GET FEED (SILO) ➔ 2. MIX (FROG) ➔ 3. FEED (MICE) = 🍬 TARGET
         </DreiText>
         {/* Decorative Hanging Ropes */}
         <mesh position={[-2.4, 0.35, -0.05]} rotation={[0, 0, 0]}>

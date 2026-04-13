@@ -329,12 +329,12 @@ export const BallSpawner = ({
       <group ref={signRef} position={[0, 3.5, 0.2]} rotation={[0, 0, 0]}>
         {/* Sign Board */}
         <group position={[0, 0, 0.1]}>
-          <RoundedBox args={[3.2, 1.4, 0.15]} radius={0.15} smoothness={4} castShadow>
+          <RoundedBox args={[4.2, 1.4, 0.15]} radius={0.15} smoothness={4} castShadow>
              <meshStandardMaterial color="#4c1d95" roughness={0.8} />
           </RoundedBox>
           
           {/* Step Badge */}
-          <group position={[-1.1, 0.35, 0.12]}>
+          <group position={[-1.5, 0.35, 0.12]}>
             <mesh>
               <circleGeometry args={[0.25, 32]} />
               <meshStandardMaterial color="#fcd34d" emissive="#fcd34d" emissiveIntensity={0.5} />
@@ -343,16 +343,16 @@ export const BallSpawner = ({
           </group>
           
           {/* Main Title */}
-          <Text position={[0.1, 0.35, 0.1]} fontSize={0.32} color="#f0abfc" fontWeight="900" anchorX="center">CANDY SHOP 🍭</Text>
-          <Text position={[0.1, 0.05, 0.1]} fontSize={0.20} color="#ffffff" fontWeight="bold" anchorX="center">SPAWN CANDY</Text>
+          <Text position={[0.4, 0.35, 0.1]} fontSize={0.32} color="#f0abfc" fontWeight="900" anchorX="center">CANDY SHOP 🍭</Text>
+          <Text position={[0.4, 0.05, 0.1]} fontSize={0.20} color="#ffffff" fontWeight="bold" anchorX="center">SPAWN CANDY</Text>
           
           {/* Instructions */}
           <mesh position={[0, -0.25, 0.1]}>
              <boxGeometry args={[2.5, 0.02, 0.01]} />
              <meshBasicMaterial color="#a78bfa" />
           </mesh>
-          <Text position={[0, -0.45, 0.1]} fontSize={0.14} color="#fdf4ff" fontWeight="800" maxWidth={2.6} textAlign="center">
-             SHAKE THE WAND TO DISPENSE FRESH CAT CANDY!
+          <Text position={[0, -0.45, 0.1]} fontSize={0.14} color="#fdf4ff" fontWeight="800" maxWidth={3.4} textAlign="center">
+             SHAKE THE WAND TO DISPENSE FRESH MOUSE CANDY!
           </Text>
         </group>
       </group>

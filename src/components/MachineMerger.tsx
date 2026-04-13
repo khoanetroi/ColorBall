@@ -301,29 +301,71 @@ function MachineMergerCore({ position, rotation = [0, 0, 0], gameState, spawnBal
               <meshStandardMaterial color={getHexColor(colorA)} emissive={getHexColor(colorA)} emissiveIntensity={0.1} />
             </mesh>
             
-            {/* KAWAII MOUSE FACE (Preview) */}
-            <group position={[0, 0, 0.38]}>
-               <mesh position={[-0.1, 0, 0]}><sphereGeometry args={[0.08, 16, 16]} scale={[1, 1.2, 0.2]} /><meshStandardMaterial color="#020617" /></mesh>
-               <mesh position={[0.1, 0, 0]}><sphereGeometry args={[0.08, 16, 16]} scale={[1, 1.2, 0.2]} /><meshStandardMaterial color="#020617" /></mesh>
-               <group position={[0, -0.06, 0]}>
-                  <mesh position={[-0.03, 0, 0]} rotation={[0, 0, Math.PI / 2]}><torusGeometry args={[0.03, 0.01, 12, 24, Math.PI]} /><meshStandardMaterial color="#334155" /></mesh>
-                  <mesh position={[0.03, 0, 0]} rotation={[0, 0, Math.PI / 2]}><torusGeometry args={[0.03, 0.01, 12, 24, Math.PI]} /><meshStandardMaterial color="#334155" /></mesh>
+            {/* EXACT MOUSE FACE CLONE (Properly Rescaled for 0.42 radius) */}
+            <group position={[0, 0.07, 0.40]}>
+               {/* Eyes with Highlights - Offset properly to be visible */}
+               <group position={[-0.2, 0, 0.02]}>
+                  <mesh rotation={[0.1, 0, 0]}>
+                     <sphereGeometry args={[0.09, 16, 16]} scale={[1, 1.2, 0.2]} />
+                     <meshStandardMaterial color="#020617" roughness={0} />
+                  </mesh>
+                  <mesh position={[0.03, 0.04, 0.03]}>
+                     <sphereGeometry args={[0.035, 8, 8]} />
+                     <meshBasicMaterial color="white" />
+                  </mesh>
+                  <mesh position={[-0.03, -0.03, 0.03]}>
+                     <sphereGeometry args={[0.018, 8, 8]} />
+                     <meshBasicMaterial color="white" />
+                  </mesh>
+               </group>
+               <group position={[0.2, 0, 0.02]}>
+                  <mesh rotation={[0.1, 0, 0]}>
+                     <sphereGeometry args={[0.09, 16, 16]} scale={[1, 1.2, 0.2]} />
+                     <meshStandardMaterial color="#020617" roughness={0} />
+                  </mesh>
+                  <mesh position={[0.03, 0.04, 0.03]}>
+                     <sphereGeometry args={[0.035, 8, 8]} />
+                     <meshBasicMaterial color="white" />
+                  </mesh>
+                  <mesh position={[-0.03, -0.03, 0.03]}>
+                     <sphereGeometry args={[0.018, 8, 8]} />
+                     <meshBasicMaterial color="white" />
+                  </mesh>
+               </group>
+               {/* :3 Mouth */}
+               <group position={[0, -0.11, 0.02]}>
+                  <mesh position={[-0.05, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+                     <torusGeometry args={[0.05, 0.015, 12, 24, Math.PI]} />
+                     <meshStandardMaterial color="#334155" />
+                  </mesh>
+                  <mesh position={[0.05, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+                     <torusGeometry args={[0.05, 0.015, 12, 24, Math.PI]} />
+                     <meshStandardMaterial color="#334155" />
+                  </mesh>
                </group>
             </group>
             
-            <mesh position={[0.18, -0.05, 0.3]} scale={0.4}><sphereGeometry args={[0.1, 16, 16]} scale={[1, 0.6, 0.2]} /><meshBasicMaterial color="#fda4af" transparent opacity={0.6} /></mesh>
-            <mesh position={[-0.18, -0.05, 0.3]} scale={0.4}><sphereGeometry args={[0.1, 16, 16]} scale={[1, 0.6, 0.2]} /><meshBasicMaterial color="#fda4af" transparent opacity={0.6} /></mesh>
+            <mesh position={[0.28, -0.03, 0.34]} scale={0.4}>
+              <sphereGeometry args={[0.14, 16, 16]} scale={[1, 0.6, 0.2]} />
+              <meshBasicMaterial color="#fda4af" transparent opacity={0.6} />
+            </mesh>
+            <mesh position={[-0.28, -0.03, 0.34]} scale={0.4}>
+              <sphereGeometry args={[0.14, 16, 16]} scale={[1, 0.6, 0.2]} />
+              <meshBasicMaterial color="#fda4af" transparent opacity={0.6} />
+            </mesh>
 
-            <group position={[-0.22, 0.28, 0]} rotation={[0, 0, 0.3]}>
-               <mesh castShadow><sphereGeometry args={[0.18, 16, 16]} scale={[1, 1.2, 0.4]} /><meshStandardMaterial color={getHexColor(colorA)} /></mesh>
-               <mesh position={[0, -0.02, 0.05]} scale={[0.7, 0.8, 0.1]}><sphereGeometry args={[0.14, 16, 16]} /><meshStandardMaterial color="#fecaca" /></mesh>
+            {/* Exact Ear Proportions - Scaled by ~1.4 for the larger body */}
+            <group position={[-0.25, 0.3, 0]} rotation={[0, 0, 0.4]}>
+               <mesh castShadow><sphereGeometry args={[0.21, 16, 16]} scale={[1, 1.2, 0.4]} /><meshStandardMaterial color={getHexColor(colorA)} roughness={0.4} /></mesh>
+               <mesh position={[0, -0.02, 0.05]} scale={[0.7, 0.8, 0.1]}><sphereGeometry args={[0.16, 16, 16]} /><meshStandardMaterial color="#fecaca" /></mesh>
             </group>
-            <group position={[0.22, 0.28, 0]} rotation={[0, 0, -0.3]}>
-               <mesh castShadow><sphereGeometry args={[0.18, 16, 16]} scale={[1, 1.2, 0.4]} /><meshStandardMaterial color={getHexColor(colorA)} /></mesh>
-               <mesh position={[0, -0.02, 0.05]} scale={[0.7,0.8,0.1]}><sphereGeometry args={[0.14, 16, 16]} /><meshStandardMaterial color="#fecaca" /></mesh>
+            <group position={[0.25, 0.3, 0]} rotation={[0, 0, -0.4]}>
+               <mesh castShadow><sphereGeometry args={[0.21, 16, 16]} scale={[1, 1.2, 0.4]} /><meshStandardMaterial color={getHexColor(colorA)} roughness={0.4} /></mesh>
+               <mesh position={[0, -0.02, 0.05]} scale={[0.7, 0.8, 0.1]}><sphereGeometry args={[0.16, 16, 16]} /><meshStandardMaterial color="#fecaca" /></mesh>
             </group>
 
-            <mesh position={[0, -0.12, -0.38]}><sphereGeometry args={[0.12, 16, 16]} /><meshStandardMaterial color="#ffffff" /></mesh>
+            {/* Puffy Tail */}
+            <mesh position={[0, -0.14, -0.5]} scale={1.4}><sphereGeometry args={[0.1, 16, 16]} /><meshStandardMaterial color="#ffffff" roughness={1.0} /></mesh>
           </group>
         )}
       </group>
@@ -354,29 +396,71 @@ function MachineMergerCore({ position, rotation = [0, 0, 0], gameState, spawnBal
               <meshStandardMaterial color={getHexColor(colorB)} emissive={getHexColor(colorB)} emissiveIntensity={0.1} />
             </mesh>
 
-            {/* KAWAII MOUSE FACE (Preview) */}
-            <group position={[0, 0, 0.38]}>
-               <mesh position={[-0.1, 0, 0]}><sphereGeometry args={[0.08, 16, 16]} scale={[1, 1.2, 0.2]} /><meshStandardMaterial color="#020617" /></mesh>
-               <mesh position={[0.1, 0, 0]}><sphereGeometry args={[0.08, 16, 16]} scale={[1, 1.2, 0.2]} /><meshStandardMaterial color="#020617" /></mesh>
-               <group position={[0, -0.06, 0]}>
-                  <mesh position={[-0.03, 0, 0]} rotation={[0, 0, Math.PI / 2]}><torusGeometry args={[0.03, 0.01, 12, 24, Math.PI]} /><meshStandardMaterial color="#334155" /></mesh>
-                  <mesh position={[0.03, 0, 0]} rotation={[0, 0, Math.PI / 2]}><torusGeometry args={[0.03, 0.01, 12, 24, Math.PI]} /><meshStandardMaterial color="#334155" /></mesh>
+            {/* EXACT MOUSE FACE CLONE (Properly Rescaled) */}
+            <group position={[0, 0.07, 0.40]}>
+               {/* Eyes with Highlights */}
+               <group position={[-0.2, 0, 0.02]}>
+                  <mesh rotation={[0.1, 0, 0]}>
+                     <sphereGeometry args={[0.09, 16, 16]} scale={[1, 1.2, 0.2]} />
+                     <meshStandardMaterial color="#020617" roughness={0} />
+                  </mesh>
+                  <mesh position={[0.03, 0.04, 0.03]}>
+                     <sphereGeometry args={[0.035, 8, 8]} />
+                     <meshBasicMaterial color="white" />
+                  </mesh>
+                  <mesh position={[-0.03, -0.03, 0.03]}>
+                     <sphereGeometry args={[0.018, 8, 8]} />
+                     <meshBasicMaterial color="white" />
+                  </mesh>
+               </group>
+               <group position={[0.2, 0, 0.02]}>
+                  <mesh rotation={[0.1, 0, 0]}>
+                     <sphereGeometry args={[0.09, 16, 16]} scale={[1, 1.2, 0.2]} />
+                     <meshStandardMaterial color="#020617" roughness={0} />
+                  </mesh>
+                  <mesh position={[0.03, 0.04, 0.03]}>
+                     <sphereGeometry args={[0.035, 8, 8]} />
+                     <meshBasicMaterial color="white" />
+                  </mesh>
+                  <mesh position={[-0.03, -0.03, 0.03]}>
+                     <sphereGeometry args={[0.018, 8, 8]} />
+                     <meshBasicMaterial color="white" />
+                  </mesh>
+               </group>
+               {/* :3 Mouth */}
+               <group position={[0, -0.11, 0.02]}>
+                  <mesh position={[-0.05, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+                     <torusGeometry args={[0.05, 0.015, 12, 24, Math.PI]} />
+                     <meshStandardMaterial color="#334155" />
+                  </mesh>
+                  <mesh position={[0.05, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+                     <torusGeometry args={[0.05, 0.015, 12, 24, Math.PI]} />
+                     <meshStandardMaterial color="#334155" />
+                  </mesh>
                </group>
             </group>
             
-            <mesh position={[0.18, -0.05, 0.3]} scale={0.4}><sphereGeometry args={[0.1, 16, 16]} scale={[1, 0.6, 0.2]} /><meshBasicMaterial color="#fda4af" transparent opacity={0.6} /></mesh>
-            <mesh position={[-0.18, -0.05, 0.3]} scale={0.4}><sphereGeometry args={[0.1, 16, 16]} scale={[1, 0.6, 0.2]} /><meshBasicMaterial color="#fda4af" transparent opacity={0.6} /></mesh>
+            <mesh position={[0.28, -0.03, 0.34]} scale={0.4}>
+              <sphereGeometry args={[0.14, 16, 16]} scale={[1, 0.6, 0.2]} />
+              <meshBasicMaterial color="#fda4af" transparent opacity={0.6} />
+            </mesh>
+            <mesh position={[-0.28, -0.03, 0.34]} scale={0.4}>
+              <sphereGeometry args={[0.14, 16, 16]} scale={[1, 0.6, 0.2]} />
+              <meshBasicMaterial color="#fda4af" transparent opacity={0.6} />
+            </mesh>
 
-            <group position={[-0.22, 0.28, 0]} rotation={[0, 0, 0.3]}>
-               <mesh castShadow><sphereGeometry args={[0.18, 16, 16]} scale={[1, 1.2, 0.4]} /><meshStandardMaterial color={getHexColor(colorB)} /></mesh>
-               <mesh position={[0, -0.02, 0.05]} scale={[0.7, 0.8, 0.1]}><sphereGeometry args={[0.14, 16, 16]} /><meshStandardMaterial color="#fecaca" /></mesh>
+            {/* Exact Ear Proportions */}
+            <group position={[-0.25, 0.3, 0]} rotation={[0, 0, 0.4]}>
+               <mesh castShadow><sphereGeometry args={[0.21, 16, 16]} scale={[1, 1.2, 0.4]} /><meshStandardMaterial color={getHexColor(colorB)} roughness={0.4} /></mesh>
+               <mesh position={[0, -0.02, 0.05]} scale={[0.7, 0.8, 0.1]}><sphereGeometry args={[0.16, 16, 16]} /><meshStandardMaterial color="#fecaca" /></mesh>
             </group>
-            <group position={[0.22, 0.28, 0]} rotation={[0, 0, -0.3]}>
-               <mesh castShadow><sphereGeometry args={[0.18, 16, 16]} scale={[1, 1.2, 0.4]} /><meshStandardMaterial color={getHexColor(colorB)} /></mesh>
-               <mesh position={[0, -0.02, 0.05]} scale={[0.7, 0.8, 0.1]}><sphereGeometry args={[0.14, 16, 16]} /><meshStandardMaterial color="#fecaca" /></mesh>
+            <group position={[0.25, 0.3, 0]} rotation={[0, 0, -0.4]}>
+               <mesh castShadow><sphereGeometry args={[0.21, 16, 16]} scale={[1, 1.2, 0.4]} /><meshStandardMaterial color={getHexColor(colorB)} roughness={0.4} /></mesh>
+               <mesh position={[0, -0.02, 0.05]} scale={[0.7, 0.8, 0.1]}><sphereGeometry args={[0.16, 16, 16]} /><meshStandardMaterial color="#fecaca" /></mesh>
             </group>
 
-            <mesh position={[0, -0.12, -0.38]}><sphereGeometry args={[0.12, 16, 16]} /><meshStandardMaterial color="#ffffff" /></mesh>
+            {/* Puffy Tail */}
+            <mesh position={[0, -0.14, -0.5]} scale={1.4}><sphereGeometry args={[0.1, 16, 16]} /><meshStandardMaterial color="#ffffff" roughness={1.0} /></mesh>
           </group>
         )}
       </group>
@@ -392,12 +476,12 @@ function MachineMergerCore({ position, rotation = [0, 0, 0], gameState, spawnBal
       {/* --- UNIFIED FLOATING SIGNAGE (Overhead Step 2) --- */}
       <group ref={signRef} position={[0, 4.8, 0.4]} rotation={[0, 0, 0]}>
         <group position={[0, 0.1, 0.1]}>
-          <RoundedBox args={[3.2, 1.4, 0.15]} radius={0.15} smoothness={4} castShadow>
+          <RoundedBox args={[4.2, 1.4, 0.15]} radius={0.15} smoothness={4} castShadow>
             <meshStandardMaterial color="#422006" />
           </RoundedBox>
 
           {/* Step Badge */}
-          <group position={[-1.15, 0.4, 0.12]}>
+          <group position={[-1.55, 0.4, 0.12]}>
             <mesh>
               <circleGeometry args={[0.25, 32]} />
               <meshStandardMaterial color="#fbbf24" emissive="#fbbf24" emissiveIntensity={0.5} />
@@ -405,14 +489,14 @@ function MachineMergerCore({ position, rotation = [0, 0, 0], gameState, spawnBal
             <Text position={[0, 0, 0.02]} fontSize={0.25} color="#451a03" fontWeight="900">2</Text>
           </group>
 
-          <Text position={[0.1, 0.4, 0.1]} fontSize={0.32} color="#fcd34d" fontWeight="900" anchorX="center">FROGGY CHEF 🐸</Text>
-          <Text position={[0.1, 0.1, 0.1]} fontSize={0.20} color="#ffffff" fontWeight="bold" anchorX="center">MIX MAGIC CAT CANDY</Text>
+          <Text position={[0.3, 0.4, 0.1]} fontSize={0.32} color="#fcd34d" fontWeight="900" anchorX="center">FROGGY CHEF 🐸</Text>
+          <Text position={[0.3, 0.1, 0.1]} fontSize={0.20} color="#ffffff" fontWeight="bold" anchorX="center">MIX MAGIC MOUSE CANDY</Text>
           
           <mesh position={[0, -0.2, 0.1]}>
              <boxGeometry args={[2.5, 0.02, 0.01]} />
              <meshBasicMaterial color="#fbbf24" />
           </mesh>
-          <Text position={[0, -0.45, 0.1]} fontSize={0.14} color="#fef3c7" fontWeight="800" maxWidth={2.6} textAlign="center">
+          <Text position={[0, -0.45, 0.1]} fontSize={0.14} color="#fef3c7" fontWeight="800" maxWidth={3.6} textAlign="center">
              DROP TWO PRIMARY COLORS INTO CHEF'S HANDS TO CREATE NEW FLAVORS!
           </Text>
         </group>
