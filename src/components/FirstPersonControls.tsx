@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
-import { useXRInputSource } from '@react-three/xr';
+import { useXRInputSources } from '@react-three/xr';
 import { RigidBody, RapierRigidBody, CapsuleCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 
@@ -18,8 +18,9 @@ export function FirstPersonControls() {
   const [lastTurnTime, setLastTurnTime] = useState(0);
 
   // VR Inputs
-  const leftController = useXRInputSource('left');
-  const rightController = useXRInputSource('right');
+  const inputSources = useXRInputSources();
+  const leftController = inputSources.find(s => s.inputSource.handedness === 'left');
+  const rightController = inputSources.find(s => s.inputSource.handedness === 'right');
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -71,8 +72,8 @@ export function FirstPersonControls() {
       movement.normalize().multiplyScalar(WALK_SPEED);
     } 
     // 3. VR Joystick Input (Left Controller)
-    else if (leftController?.gamepad) {
-      const axes = leftController.gamepad.axes;
+    else if (leftController?.inputSource?.gamepad) {
+      const axes = leftController.inputSource.gamepad.axes;
       const joyX = axes[2] || 0;
       const joyY = axes[3] || 0;
 
@@ -83,8 +84,8 @@ export function FirstPersonControls() {
       }
 
       // Snap Turn (Right Controller)
-      if (rightController?.gamepad) {
-        const rAxes = rightController.gamepad.axes;
+      if (rightController?.inputSource?.gamepad) {
+        const rAxes = rightController.inputSource.gamepad.axes;
         const rJoyX = rAxes[2] || 0;
         const now = state.clock.elapsedTime;
         if (Math.abs(rJoyX) > 0.6 && now - lastTurnTime > 0.3) {

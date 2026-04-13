@@ -13,7 +13,6 @@ import { LevelProps } from './components/LevelProps';
 import { GameState, useGameStore } from './store/GameStore';
 import { FirstPersonControls } from './components/FirstPersonControls';
 import { InteractionSystem } from './components/InteractionSystem';
-import { VRPlayer } from './components/VRPlayer';
 import { createXRStore, XR } from '@react-three/xr';
 
 const xrStore = createXRStore({
@@ -341,7 +340,6 @@ export default function App() {
         <fog attach="fog" args={['#d8ecff', 30, 120]} />
         
         <XR store={xrStore}>
-          <VRPlayer />
           <GameClock />
           
             <WorldMenu />
