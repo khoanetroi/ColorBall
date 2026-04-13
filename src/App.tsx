@@ -1,6 +1,6 @@
-import { Suspense, useEffect, useMemo, useRef, useState, ReactNode } from 'react';
+import { Suspense, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { RoundedBox, Sky, Stars, Sparkles } from '@react-three/drei';
 import { RigidBody, Physics, CuboidCollider } from '@react-three/rapier';
 import { Ball } from './components/Ball';
