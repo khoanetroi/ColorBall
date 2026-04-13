@@ -53,7 +53,7 @@ export function FirstPersonControls() {
     const movement = new THREE.Vector3();
     const isVR = gl.xr.isPresenting;
 
-    // 1. Get Directional Basis
+    // 1. Get Directional Basis (Head/Camera orientation)
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
     forward.y = 0;
     forward.normalize();
@@ -62,65 +62,69 @@ export function FirstPersonControls() {
     right.y = 0;
     right.normalize();
 
-    // 2. Desktop Input
-    if (!isVR) {
-      if (keys.current.w) movement.add(forward);
-      if (keys.current.s) movement.sub(forward);
-      if (keys.current.d) movement.add(right);
-      if (keys.current.a) movement.sub(right);
-      movement.normalize().multiplyScalar(WALK_SPEED);
-    } 
-    // 3. VR Joystick Input (Left Controller)
-    else if (leftController?.inputSource?.gamepad) {
+    // 2. Keyboard Input (Always on for hybrid users)
+    if (keys.current.w) movement.add(forward);
+    if (keys.current.s) movement.sub(forward);
+    if (keys.current.d) movement.add(right);
+    if (keys.current.a) movement.sub(right);
+
+    // 3. VR Joystick Input (Left Controller - Move)
+    if (isVR && leftController?.inputSource?.gamepad) {
       const axes = leftController.inputSource.gamepad.axes;
-      const joyX = axes[2] || 0;
-      const joyY = axes[3] || 0;
+      // Quest and WebXR usually map to [2,3] but fallback to [0,1]
+      const lx = (Math.abs(axes[2]) > 0.1 || Math.abs(axes[3]) > 0.1) ? axes[2] : (axes[0] || 0);
+      const ly = (Math.abs(axes[2]) > 0.1 || Math.abs(axes[3]) > 0.1) ? axes[3] : (axes[1] || 0);
 
-      if (Math.abs(joyX) > 0.1 || Math.abs(joyY) > 0.1) {
-        movement.addScaledVector(forward, -joyY);
-        movement.addScaledVector(right, joyX);
-        movement.multiplyScalar(VR_WALK_SPEED);
-      }
-
-      // Snap Turn (Right Controller)
-      if (rightController?.inputSource?.gamepad) {
-        const rAxes = rightController.inputSource.gamepad.axes;
-        const rJoyX = rAxes[2] || 0;
-        const now = state.clock.elapsedTime;
-        if (Math.abs(rJoyX) > 0.6 && now - lastTurnTime > 0.3) {
-          // In XR, we rotate the Rig/Body
-          rbRef.current.setRotation(
-            new THREE.Quaternion().setFromEuler(
-              new THREE.Euler(0, rbRef.current.rotation().y - Math.sign(rJoyX) * TURN_AMOUNT, 0)
-            ),
-            true
-          );
-          setLastTurnTime(now);
-        }
+      if (Math.abs(lx) > 0.1 || Math.abs(ly) > 0.1) {
+        movement.addScaledVector(forward, -ly);
+        movement.addScaledVector(right, lx);
       }
     }
 
-    // 4. Physics Application
+    // Apply speed
+    if (movement.length() > 0.01) {
+      movement.normalize().multiplyScalar(isVR ? VR_WALK_SPEED : WALK_SPEED);
+    }
+
+    // 4. VR Snap Turn (Right Controller)
+    if (isVR && rightController?.inputSource?.gamepad) {
+      const rAxes = rightController.inputSource.gamepad.axes;
+      const rx = Math.abs(rAxes[2]) > 0.1 ? rAxes[2] : (rAxes[0] || 0);
+      const now = state.clock.elapsedTime;
+      
+      if (Math.abs(rx) > 0.7 && now - lastTurnTime > 0.25) {
+        const currentRotation = rbRef.current.rotation();
+        const turnQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -Math.sign(rx) * TURN_AMOUNT, 0));
+        const newRotation = new THREE.Quaternion(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w).multiply(turnQ);
+        
+        rbRef.current.setRotation(newRotation, true);
+        setLastTurnTime(now);
+      }
+    }
+
+    // 5. Jump
     if (keys.current.space && isGrounded.current && !isVR) {
       rbRef.current.setLinvel({ x: velocity.x, y: JUMP_FORCE, z: velocity.z }, true);
       isGrounded.current = false;
     }
 
+    // Apply translation to physics body
     rbRef.current.setLinvel({ x: movement.x, y: rbRef.current.linvel().y, z: movement.z }, true);
 
-    // 5. Camera Sync
+    // 6. Camera & Player Body Sync
     const pos = rbRef.current.translation();
     if (!isVR) {
+      // First Person smoothing on Desktop
       camera.position.lerp(new THREE.Vector3(pos.x, pos.y + 0.85, pos.z), 0.7);
     } else {
-      // In VR, the XR session manages the camera, but we must keep the physics body near the player
-      // Simple follow: move the body horizontally to match camera world position
+      // In VR, the Headset is absolute. We keep the physics collider centered under the headset horizontally.
       const headPos = new THREE.Vector3().setFromMatrixPosition(camera.matrixWorld);
       rbRef.current.setTranslation({ x: headPos.x, y: pos.y, z: headPos.z }, true);
     }
 
     if (Math.abs(rbRef.current.linvel().y) < 0.1) isGrounded.current = true;
 
+    // Safety Respawn
     if (pos.y < -15) {
       rbRef.current.setTranslation({ x: 0, y: 3, z: 8 }, true);
       rbRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
@@ -143,4 +147,3 @@ export function FirstPersonControls() {
     </>
   );
 }
-

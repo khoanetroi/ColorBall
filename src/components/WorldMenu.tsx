@@ -1,5 +1,8 @@
-import { RoundedBox, Text as DreiText } from '@react-three/drei';
+import { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { Text as DreiText } from '@react-three/drei';
 import { GameState, useGameStore } from '../store/GameStore';
+import * as THREE from 'three';
 
 const clampProgress = (value: number) => Math.min(1, Math.max(0, value));
 
@@ -7,124 +10,156 @@ export function WorldMenu(props: any) {
   const score = useGameStore((state) => state.score);
   const targetScore = useGameStore((state) => state.targetScore);
   const timeLeft = useGameStore((state) => state.timeLeft);
-  const objective = useGameStore((state) => state.objective);
   const level = useGameStore((state) => state.level);
   const gameState = useGameStore((state) => state.gameState);
   const combo = useGameStore((state) => state.combo);
-  const bestCombo = useGameStore((state) => state.bestCombo);
+
+  const groupRef = useRef<THREE.Group>(null);
+
+  // Smooth swaying/breathing animation
+  useFrame((state) => {
+    if (groupRef.current) {
+      const t = state.clock.getElapsedTime();
+      groupRef.current.position.y = Math.sin(t * 1.2) * 0.08;
+      groupRef.current.rotation.z = Math.sin(t * 0.5) * 0.02;
+    }
+  });
 
   const progress = targetScore > 0 ? clampProgress(score / targetScore) : 0;
-  const progressWidth = Math.max(0.1, 2.8 * progress);
-  const progressOffset = -1.4 + progressWidth / 2;
-
+  
   const statusLabel =
-    gameState === GameState.Victory ? 'STAGE CLEAR!' : gameState === GameState.GameOver ? 'TIME OUT' : 'IN PLAY';
+    gameState === GameState.Victory ? 'COMPLETED!' : gameState === GameState.GameOver ? 'TIME OUT' : 'IN PROGRESS';
 
   const statusColor =
-    gameState === GameState.Victory ? '#22c55e' : gameState === GameState.GameOver ? '#ef4444' : '#f59e0b';
+    gameState === GameState.Victory ? '#059669' : gameState === GameState.GameOver ? '#dc2626' : '#db2777';
 
-  const timeLabel = (() => {
-    if (timeLeft <= 0) return '∞';
-    const mins = Math.floor(timeLeft / 60);
-    const secs = Math.floor(timeLeft % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  })();
+  const timeLabel = timeLeft <= 0 ? '∞' : `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`;
 
   return (
     <group {...props}>
-      {/* Wooden Post */}
-      <mesh position={[0, -2.2, -0.1]} castShadow>
-        <boxGeometry args={[0.15, 3.2, 0.15]} />
-        <meshStandardMaterial color="#451a03" roughness={0.9} />
-      </mesh>
-
-      {/* Main Wooden Board (Vertical Container) */}
-      <group position={[0, 0, 0]}>
-        {/* Board Frame - STRICTLY VERTICAL (NARROWER) */}
-        <RoundedBox args={[3.2, 5.2, 0.15]} radius={0.15} smoothness={4} castShadow receiveShadow>
-          <meshStandardMaterial color="#7c2d12" roughness={0.8} />
-        </RoundedBox>
-
-        {/* Paper/Inner Surface */}
-        <RoundedBox args={[2.8, 4.8, 0.08]} radius={0.1} smoothness={4} position={[0, 0, 0.05]}>
-          <meshStandardMaterial color="#fef3c7" roughness={0.4} />
-        </RoundedBox>
-
-        {/* --- Content (Refined for narrow layout) --- */}
-        <group position={[0, 0, 0.1]}>
-          <DreiText position={[0, 2.1, 0]} fontSize={0.22} color="#451a03" fontWeight="900">FIELD PROGRESS</DreiText>
-          <DreiText position={[0, 1.8, 0]} fontSize={0.16} color="#78350f" fontWeight="700">
-             Stage {level === 0 ? 'Tutorial' : `L${level}`}
-          </DreiText>
-
-          {/* Status Badge */}
-          <group position={[0, 1.3, 0]}>
-            <RoundedBox args={[2.2, 0.5, 0.02]} radius={0.1} smoothness={4}>
-               <meshStandardMaterial color={statusColor} />
-            </RoundedBox>
-            <DreiText position={[0, 0, 0.03]} fontSize={0.22} color="#ffffff" fontWeight="900" textAlign="center">
-               {statusLabel}
-            </DreiText>
-          </group>
-
-          <DreiText position={[0, 0.6, 0]} fontSize={0.14} color="#78350f" fontWeight="800" maxWidth={2.4} textAlign="center">
-            {objective.toUpperCase()}
-          </DreiText>
-
-          {/* Progress Section */}
-          <group position={[0, -0.4, 0]}>
-             <DreiText position={[0, 0.6, 0]} fontSize={0.14} color="#a16207" fontWeight="bold">
-                FEED PROGRESS
-             </DreiText>
-             {/* Track */}
-             <RoundedBox args={[2.4, 0.2, 0.05]} radius={0.1} smoothness={4} position={[0, 0.25, 0]}>
-                <meshStandardMaterial color="#fef08a" />
-             </RoundedBox>
-             {/* Fill - Adjust offset for 2.4 width */}
-             <group position={[(-1.2 + (Math.max(0.1, 2.2 * progress) / 2)), 0.25, 0.02]}>
-                <RoundedBox args={[Math.max(0.1, 2.2 * progress), 0.15, 0.05]} radius={0.07} smoothness={4}>
-                   <meshStandardMaterial color="#eab308" emissive="#eab308" emissiveIntensity={0.2} />
-                </RoundedBox>
-             </group>
-             <DreiText position={[0, -0.2, 0]} fontSize={0.25} color="#854d0e" fontWeight="900">
-                {score} / {targetScore}
-             </DreiText>
-          </group>
-
-          {/* Stats Column (Stacked for narrow) */}
-          <group position={[0, -1.3, 0]}>
-             <DreiText position={[0, 0.2, 0]} fontSize={0.16} color="#78350f" fontWeight="bold">
-                TIME: {timeLabel}
-             </DreiText>
-             <DreiText position={[0, -0.1, 0]} fontSize={0.16} color="#78350f" fontWeight="bold">
-                STREAK: x{combo}
-             </DreiText>
-          </group>
-
-          <mesh position={[0, -1.7, 0]}>
-             <boxGeometry args={[2.4, 0.02, 0.01]} />
-             <meshBasicMaterial color="#d97706" opacity={0.3} transparent />
+      <group ref={groupRef}>
+        {/* --- STICKER HUD BASE (ZERO THICKNESS) --- */}
+        <group position={[0, 0, 0]}>
+          {/* Main Paper Plane (Solid Cream) */}
+          <mesh castShadow receiveShadow>
+             <planeGeometry args={[7.8, 5.2]} />
+             <meshStandardMaterial color="#fffcf2" side={THREE.DoubleSide} roughness={1} />
           </mesh>
 
-          {/* Steps Guide (Stacked) */}
-          <group position={[0, -2.1, 0]}>
-             <DreiText fontSize={0.11} color="#92400e" fontWeight="bold" maxWidth={2.4} textAlign="center" lineHeight={1.2}>
-                1: FEED SILO ➔ 2: MIX FROG
-                3: FEED MICE
+          {/* Sticker Border (Shocking Pink) */}
+          <mesh position={[0, 0, -0.01]}>
+             <planeGeometry args={[8.1, 5.5]} />
+             <meshStandardMaterial color="#f472b6" side={THREE.DoubleSide} roughness={1} />
+          </mesh>
+
+          {/* --- WASHI TAPE DECORATIONS (CORNERS) --- */}
+          {[
+            [-4.0, 2.7, Math.PI / 4], [4.0, 2.7, -Math.PI / 4],
+            [-4.0, -2.7, -Math.PI / 4], [4.0, -2.7, Math.PI / 4]
+          ].map(([x, y, r], i) => (
+             <mesh key={i} position={[x, y, 0.02]} rotation={[0, 0, r]}>
+                <planeGeometry args={[1.5, 0.5]} />
+                <meshStandardMaterial color={i % 2 === 0 ? "#70e0f0" : "#fb7185"} opacity={0.7} transparent />
+             </mesh>
+          ))}
+          {/* --- HEADER UI (ADJUSTED PADDING) --- */}
+          <group position={[0, 2.2, 0.03]}>
+             <DreiText fontSize={0.4} color="#be185d" fontWeight="900" letterSpacing={0.02}>
+                FARMER'S TO-DO LIST 🐈
              </DreiText>
-             <DreiText position={[0, -0.4, 0]} fontSize={0.09} color="#78350f" fontWeight="900">
-                BEST COMBO: x{bestCombo}
-             </DreiText>
+             <group position={[0, -0.3, 0]}>
+                <DreiText position={[-3.3, 0, 0]} fontSize={0.16} color="#9d174d" fontWeight="800" anchorX="left">
+                   LEVEL: {level}
+                </DreiText>
+                <DreiText position={[3.3, 0, 0]} fontSize={0.16} color="#9d174d" fontWeight="800" anchorX="right">
+                   CHRONO: {timeLabel}
+                </DreiText>
+             </group>
+          </group>
+
+          {/* --- TASK LIST (ORGANIZED) --- */}
+          <group position={[0, 0.5, 0.03]}>
+             {/* Task Card 1 */}
+             <group position={[0, 0.5, 0]}>
+                <mesh position={[0, 0, -0.01]}>
+                   <planeGeometry args={[7.0, 0.7]} />
+                   <meshStandardMaterial color="#fef2f2" roughness={1} />
+                </mesh>
+                <DreiText position={[-3.2, 0, 0]} fontSize={0.22} color="#431407" fontWeight="900" anchorX="left">
+                   1. 🍎 HARVESTING
+                </DreiText>
+                <DreiText position={[-0.4, 0, 0]} fontSize={0.14} color="#9d174d" fontWeight="600" anchorX="left">
+                   Visit the Storage Silo to collect raw units.
+                </DreiText>
+             </group>
+
+             {/* Task Card 2 */}
+             <group position={[0, -0.4, 0]}>
+                <mesh position={[0, 0, -0.01]}>
+                   <planeGeometry args={[7.0, 0.7]} />
+                   <meshStandardMaterial color="#fefce8" roughness={1} />
+                </mesh>
+                <DreiText position={[-3.2, 0, 0]} fontSize={0.22} color="#431407" fontWeight="900" anchorX="left">
+                   2. 👩‍🍳 BREWING
+                </DreiText>
+                <DreiText position={[-0.4, 0, 0]} fontSize={0.14} color="#9d174d" fontWeight="600" anchorX="left">
+                   Submit units to Chef Froggy for processing.
+                </DreiText>
+             </group>
+
+             {/* Task Card 3 */}
+             <group position={[0, -1.3, 0]}>
+                <mesh position={[0, 0, -0.01]}>
+                   <planeGeometry args={[7.0, 0.7]} />
+                   <meshStandardMaterial color="#f0fdf4" roughness={1} />
+                </mesh>
+                <DreiText position={[-3.2, 0, 0]} fontSize={0.22} color="#431407" fontWeight="900" anchorX="left">
+                   3. 🎁 DELIVERY
+                </DreiText>
+                <DreiText position={[-0.4, 0, 0]} fontSize={0.14} color="#9d174d" fontWeight="600" anchorX="left">
+                   Send final units to the distribution center.
+                </DreiText>
+             </group>
+          </group>
+
+          {/* --- BOTTOM DASHBOARD (PULLED INWARD) --- */}
+          <group position={[0, -2.1, 0.03]}>
+             {/* Quota Section */}
+             <group position={[-3.3, -0.1, 0]}>
+                <DreiText position={[0, 0.35, 0]} fontSize={0.18} color="#be185d" fontWeight="900" anchorX="left">
+                   QUOTA: {score} / {targetScore} 🍎
+                </DreiText>
+                {/* Track */}
+                <mesh position={[2.0, 0, 0]}>
+                   <planeGeometry args={[4.0, 0.18]} />
+                   <meshStandardMaterial color="#fb7185" opacity={0.15} transparent />
+                </mesh>
+                {/* Active Fill */}
+                <group position={[(0 + (Math.max(0.01, 4.0 * progress) / 2)), 0, 0.01]}>
+                   <mesh>
+                      <planeGeometry args={[Math.max(0.01, 4.0 * progress), 0.14]} />
+                      <meshStandardMaterial 
+                         color="#f472b6" 
+                         emissive="#db2777" 
+                         emissiveIntensity={1.0} 
+                      />
+                   </mesh>
+                </group>
+             </group>
+
+             {/* Stats Corner */}
+             <group position={[2.2, -0.1, 0]}>
+                <group position={[0, 0, 0]}>
+                   <DreiText position={[0, 0.15, 0]} fontSize={0.12} color="#9d174d" fontWeight="bold">STATUS</DreiText>
+                   <DreiText position={[0, -0.1, 0]} fontSize={0.18} color={statusColor} fontWeight="900">{statusLabel}</DreiText>
+                </group>
+                <group position={[1.1, 0, 0]}>
+                   <DreiText position={[0, 0.15, 0]} fontSize={0.12} color="#9d174d" fontWeight="bold">STREAK</DreiText>
+                   <DreiText position={[0, -0.05, 0]} fontSize={0.28} color={combo > 1 ? "#15803d" : "#9d174d"} fontWeight="900">x{combo}</DreiText>
+                </group>
+             </group>
           </group>
         </group>
-
-        {/* Decorative corner nails */}
-        {[[-1.4, 2.4], [1.4, 2.4], [-1.4, -2.4], [1.4, -2.4]].map(([x, y], i) => (
-           <mesh key={i} position={[x, y, 0.08]}>
-              <circleGeometry args={[0.04, 16]} />
-              <meshStandardMaterial color="#451a03" />
-           </mesh>
-        ))}
       </group>
     </group>
   );

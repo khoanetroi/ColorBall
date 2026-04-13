@@ -86,13 +86,13 @@ function FloatingIsland() {
         <RoundedBox args={[42, 4, 42]} radius={1.4} smoothness={8} receiveShadow position={[0, 0, 0]}>
           <meshStandardMaterial color="#34d399" roughness={1} />
         </RoundedBox>
-        
+
 
         {/* Dirt/Rock Base - Warm Rich Earth */}
         <RoundedBox args={[39, 3.8, 39]} radius={1.5} smoothness={4} position={[0, -2.5, 0]}>
           <meshStandardMaterial color="#78350f" roughness={0.9} />
         </RoundedBox>
-        
+
         {/* Bottom Rock Tip */}
         <mesh position={[0, -5.5, 0]} rotation={[Math.PI, 0, 0]}>
           <coneGeometry args={[18, 6, 6]} />
@@ -120,12 +120,12 @@ function GlobalEnvironment() {
     <>
       <ambientLight intensity={1.2} color="#fdba74" />
       <hemisphereLight color="#fb923c" groundColor="#78350f" intensity={1.0} />
-      
-      <directionalLight 
-        position={[35, 45, 25]} 
-        intensity={4.5} 
-        color="#fff7ed" 
-        castShadow 
+
+      <directionalLight
+        position={[35, 45, 25]}
+        intensity={4.5}
+        color="#fff7ed"
+        castShadow
         shadow-mapSize={[4096, 4096]}
         shadow-bias={-0.0001}
         shadow-normalBias={0.04}
@@ -136,17 +136,17 @@ function GlobalEnvironment() {
         shadow-camera-near={0.1}
         shadow-camera-far={180}
       />
-      
+
       <pointLight position={[0, 15, 0]} intensity={1.2} color="#ffedd5" distance={60} />
-      
-      <Sky 
-        sunPosition={[100, 15, 100]} 
-        turbidity={10} 
-        rayleigh={4} 
-        mieCoefficient={0.005} 
-        mieDirectionalG={0.8} 
+
+      <Sky
+        sunPosition={[100, 15, 100]}
+        turbidity={10}
+        rayleigh={4}
+        mieCoefficient={0.005}
+        mieDirectionalG={0.8}
       />
-      
+
       <Stars radius={100} depth={50} count={1000} factor={4} saturation={1} fade speed={1.5} />
       <Sparkles count={300} scale={50} size={4} speed={0.4} opacity={0.6} color="#fcd34d" position={[0, 6, 0]} />
 
@@ -174,7 +174,7 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
   const bestCombo = useGameStore((state) => state.bestCombo);
   const gameState = useGameStore((state) => state.gameState);
   const level = useGameStore((state) => state.level);
-  
+
   const startTutorial = useGameStore((state) => state.startTutorial);
   const startLevel = useGameStore((state) => state.startLevel);
   const advanceLevel = useGameStore((state) => state.advanceLevel);
@@ -205,9 +205,9 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
     <>
       <div className="hud">
         <div className="hud-panel hud-panel--compact hud-panel--hero">
-            <p className="hud-kicker">Harvest Yard</p>
-            <p className="hud-title">Color Farm</p>
-            <p className="hud-lead">Sort feed, mix colors, and keep the coop running.</p>
+          <p className="hud-kicker">Harvest Yard</p>
+          <p className="hud-title">Color Farm</p>
+          <p className="hud-lead">Sort feed, mix colors, and keep the coop running.</p>
           <div className="hud-stats">
             <div className="hud-stat hud-stat--stage">
               <span className="hud-stat-label">Stage</span>
@@ -316,7 +316,7 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
       )}
     </>
   );
-}export default function App() {
+} export default function App() {
   const balls = useGameStore((state) => state.balls);
   const [isPresenting, setIsPresenting] = useState(xrStore.getState().session !== null);
   useEffect(() => xrStore.subscribe((state: any) => setIsPresenting(state.session !== null)), []);
@@ -342,34 +342,34 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
       >
         <color attach="background" args={['#d8ecff']} />
         <fog attach="fog" args={['#d8ecff', 30, 120]} />
-        
+
         <XR store={xrStore}>
           <GameClock />
-          
-            <WorldMenu position={[-3, 0, -3]} rotation={[0, Math.PI / 16, 0]} scale={1.2} />
 
-            <Suspense fallback={null}>
-              <Physics gravity={[0, -9.81, 0]} timeStep={1 / 60}>
-                <InteractionSystem />
-                <FirstPersonControls />
-                
-                <GlobalEnvironment />
-                <FloatingIsland />
+          <WorldMenu position={[-14, 4, 4]} rotation={[0, Math.PI / 2, 0]} scale={1.3} />
 
-                <SceneDecor />
-                <LevelProps />
+          <Suspense fallback={null}>
+            <Physics gravity={[0, -9.81, 0]} timeStep={1 / 60}>
+              <InteractionSystem />
+              <FirstPersonControls />
 
-                {/* Machine Placements on the Island */}
-                <MachineReceiver position={[10, 0.45, -6]} rotation={[0, -Math.PI / 4, 0]} />
-                <MachineMerger position={[0, 1.05, -12]} />
-                <BallSpawner position={[-10, 0.45, -6]} rotation={[0, Math.PI / 4, 0]} />
+              <GlobalEnvironment />
+              <FloatingIsland />
 
-                {balls.map((ball) => (
-                  <Ball key={ball.id} color={ball.color} position={ball.position} id={ball.id} />
-                ))}
+              <SceneDecor />
+              <LevelProps />
 
-              </Physics>
-            </Suspense>
+              {/* Machine Placements on the Island */}
+              <MachineReceiver position={[10, 0.45, -6]} rotation={[0, -Math.PI / 4, 0]} />
+              <MachineMerger position={[0, 1.05, -12]} />
+              <BallSpawner position={[-10, 0.45, -6]} rotation={[0, Math.PI / 4, 0]} />
+
+              {balls.map((ball) => (
+                <Ball key={ball.id} color={ball.color} position={ball.position} id={ball.id} />
+              ))}
+
+            </Physics>
+          </Suspense>
         </XR>
       </Canvas>
     </div>
