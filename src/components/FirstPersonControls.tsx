@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
-import { useXRInputSourceState, type XRHandedness } from '@react-three/xr';
+import { useXRInputSourceState } from '@react-three/xr';
 import { RigidBody, RapierRigidBody, CapsuleCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 
@@ -18,8 +18,8 @@ export function FirstPersonControls() {
   const [lastTurnTime, setLastTurnTime] = useState(0);
 
   // VR Inputs
-  const leftController = useXRInputSourceState('left' as XRHandedness);
-  const rightController = useXRInputSourceState('right' as XRHandedness);
+  const leftController = useXRInputSourceState('left' as any);
+  const rightController = useXRInputSourceState('right' as any);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -46,7 +46,7 @@ export function FirstPersonControls() {
     };
   }, []);
 
-  useFrame((state, delta) => {
+  useFrame((state, _delta) => {
     if (!rbRef.current) return;
 
     const velocity = rbRef.current.linvel();
