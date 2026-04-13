@@ -4,7 +4,6 @@ import * as THREE from 'three';
 import { RigidBody, RapierRigidBody, BallCollider } from '@react-three/rapier';
 import { type BallColorCode, getHexColor } from '../store/ColorSystem';
 import { useGameStore } from '../store/GameStore';
-import { RoundedBox } from '@react-three/drei';
 
 export const Ball = ({ color, position, id }: { color: BallColorCode; position: [number, number, number]; id: string }) => {
   const rigidBodyRef = useRef<RapierRigidBody>(null);
