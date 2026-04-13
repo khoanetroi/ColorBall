@@ -40,85 +40,86 @@ export function WorldMenu(props: any) {
 
       {/* Main Wooden Board (Vertical Container) */}
       <group position={[0, 0, 0]}>
-        {/* Board Frame */}
-        <RoundedBox args={[3.6, 4.8, 0.15]} radius={0.15} smoothness={4} castShadow receiveShadow>
+        {/* Board Frame - STRICTLY VERTICAL (NARROWER) */}
+        <RoundedBox args={[3.2, 5.2, 0.15]} radius={0.15} smoothness={4} castShadow receiveShadow>
           <meshStandardMaterial color="#7c2d12" roughness={0.8} />
         </RoundedBox>
 
         {/* Paper/Inner Surface */}
-        <RoundedBox args={[3.2, 4.4, 0.08]} radius={0.1} smoothness={4} position={[0, 0, 0.05]}>
+        <RoundedBox args={[2.8, 4.8, 0.08]} radius={0.1} smoothness={4} position={[0, 0, 0.05]}>
           <meshStandardMaterial color="#fef3c7" roughness={0.4} />
         </RoundedBox>
 
-        {/* --- Content --- */}
+        {/* --- Content (Refined for narrow layout) --- */}
         <group position={[0, 0, 0.1]}>
-          <DreiText position={[0, 1.8, 0]} fontSize={0.24} color="#451a03" fontWeight="900">FIELD PROGRESS</DreiText>
-          <DreiText position={[0, 1.5, 0]} fontSize={0.18} color="#78350f" fontWeight="700">
+          <DreiText position={[0, 2.1, 0]} fontSize={0.22} color="#451a03" fontWeight="900">FIELD PROGRESS</DreiText>
+          <DreiText position={[0, 1.8, 0]} fontSize={0.16} color="#78350f" fontWeight="700">
              Stage {level === 0 ? 'Tutorial' : `L${level}`}
           </DreiText>
 
           {/* Status Badge */}
-          <group position={[0, 1.0, 0]}>
-            <RoundedBox args={[2.4, 0.5, 0.02]} radius={0.1} smoothness={4}>
+          <group position={[0, 1.3, 0]}>
+            <RoundedBox args={[2.2, 0.5, 0.02]} radius={0.1} smoothness={4}>
                <meshStandardMaterial color={statusColor} />
             </RoundedBox>
-            <DreiText position={[0, 0, 0.03]} fontSize={0.25} color="#ffffff" fontWeight="900" textAlign="center">
+            <DreiText position={[0, 0, 0.03]} fontSize={0.22} color="#ffffff" fontWeight="900" textAlign="center">
                {statusLabel}
             </DreiText>
           </group>
 
-          <DreiText position={[0, 0.4, 0]} fontSize={0.16} color="#78350f" fontWeight="800" maxWidth={2.8} textAlign="center">
+          <DreiText position={[0, 0.6, 0]} fontSize={0.14} color="#78350f" fontWeight="800" maxWidth={2.4} textAlign="center">
             {objective.toUpperCase()}
           </DreiText>
 
           {/* Progress Section */}
           <group position={[0, -0.4, 0]}>
-             <DreiText position={[-1.4, 0.4, 0]} fontSize={0.14} color="#a16207" fontWeight="bold" anchorX="left">
+             <DreiText position={[0, 0.6, 0]} fontSize={0.14} color="#a16207" fontWeight="bold">
                 FEED PROGRESS
              </DreiText>
              {/* Track */}
-             <RoundedBox args={[3.0, 0.2, 0.05]} radius={0.1} smoothness={4} position={[0, 0.15, 0]}>
+             <RoundedBox args={[2.4, 0.2, 0.05]} radius={0.1} smoothness={4} position={[0, 0.25, 0]}>
                 <meshStandardMaterial color="#fef08a" />
              </RoundedBox>
-             {/* Fill */}
-             <group position={[progressOffset, 0.15, 0.02]}>
-                <RoundedBox args={[progressWidth, 0.15, 0.05]} radius={0.07} smoothness={4}>
+             {/* Fill - Adjust offset for 2.4 width */}
+             <group position={[(-1.2 + (Math.max(0.1, 2.2 * progress) / 2)), 0.25, 0.02]}>
+                <RoundedBox args={[Math.max(0.1, 2.2 * progress), 0.15, 0.05]} radius={0.07} smoothness={4}>
                    <meshStandardMaterial color="#eab308" emissive="#eab308" emissiveIntensity={0.2} />
                 </RoundedBox>
              </group>
-             <DreiText position={[0, -0.15, 0]} fontSize={0.22} color="#854d0e" fontWeight="900">
+             <DreiText position={[0, -0.2, 0]} fontSize={0.25} color="#854d0e" fontWeight="900">
                 {score} / {targetScore}
              </DreiText>
           </group>
 
-          {/* Stats Row */}
-          <group position={[0, -1.2, 0]}>
-             <DreiText position={[-0.8, 0, 0]} fontSize={0.16} color="#78350f" fontWeight="bold">
+          {/* Stats Column (Stacked for narrow) */}
+          <group position={[0, -1.3, 0]}>
+             <DreiText position={[0, 0.2, 0]} fontSize={0.16} color="#78350f" fontWeight="bold">
                 TIME: {timeLabel}
              </DreiText>
-             <DreiText position={[0.8, 0, 0]} fontSize={0.16} color="#78350f" fontWeight="bold">
+             <DreiText position={[0, -0.1, 0]} fontSize={0.16} color="#78350f" fontWeight="bold">
                 STREAK: x{combo}
              </DreiText>
           </group>
 
-          <mesh position={[0, -1.5, 0]}>
-             <boxGeometry args={[2.8, 0.02, 0.01]} />
+          <mesh position={[0, -1.7, 0]}>
+             <boxGeometry args={[2.4, 0.02, 0.01]} />
              <meshBasicMaterial color="#d97706" opacity={0.3} transparent />
           </mesh>
 
-          {/* Steps Guide (Small) */}
-          <group position={[0, -1.9, 0]}>
-             <DreiText fontSize={0.12} color="#92400e" fontWeight="bold" maxWidth={2.8} textAlign="center">
-                1: FEED SILO ➔ 2: MIX FROG ➔ 3: FEED MICE
+          {/* Steps Guide (Stacked) */}
+          <group position={[0, -2.1, 0]}>
+             <DreiText fontSize={0.11} color="#92400e" fontWeight="bold" maxWidth={2.4} textAlign="center" lineHeight={1.2}>
+                1: FEED SILO ➔ 2: MIX FROG
+                3: FEED MICE
              </DreiText>
-             <DreiText position={[0, -0.25, 0]} fontSize={0.10} color="#78350f" fontWeight="900">
+             <DreiText position={[0, -0.4, 0]} fontSize={0.09} color="#78350f" fontWeight="900">
                 BEST COMBO: x{bestCombo}
              </DreiText>
           </group>
         </group>
 
         {/* Decorative corner nails */}
-        {[[-1.6, 2.2], [1.6, 2.2], [-1.6, -2.2], [1.6, -2.2]].map(([x, y], i) => (
+        {[[-1.4, 2.4], [1.4, 2.4], [-1.4, -2.4], [1.4, -2.4]].map(([x, y], i) => (
            <mesh key={i} position={[x, y, 0.08]}>
               <circleGeometry args={[0.04, 16]} />
               <meshStandardMaterial color="#451a03" />
