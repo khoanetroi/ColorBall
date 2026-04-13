@@ -9,6 +9,25 @@ const WALK_SPEED = 6;
 const VR_WALK_SPEED = 4.5;
 const JUMP_FORCE = 6;
 const TURN_AMOUNT = Math.PI / 4;
+const STICK_DEADZONE = 0.12;
+
+function readThumbstick(gamepad: Gamepad | null | undefined) {
+  if (!gamepad?.axes) return null;
+
+  const axes = gamepad.axes;
+  const candidates: Array<[number, number]> = [
+    [axes[2] ?? 0, axes[3] ?? 0],
+    [axes[0] ?? 0, axes[1] ?? 0],
+  ];
+
+  for (const [x, y] of candidates) {
+    if (Math.abs(x) > STICK_DEADZONE || Math.abs(y) > STICK_DEADZONE) {
+      return { x, y };
+    }
+  }
+
+  return null;
+}
 
 export function FirstPersonControls() {
   const { gl, camera } = useThree();
@@ -18,8 +37,8 @@ export function FirstPersonControls() {
   const [lastTurnTime, setLastTurnTime] = useState(0);
 
   // VR Inputs
-  const leftController = useXRInputSourceState('left' as any);
-  const rightController = useXRInputSourceState('right' as any);
+  const leftController = useXRInputSourceState('controller', 'left');
+  const rightController = useXRInputSourceState('controller', 'right');
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -69,16 +88,10 @@ export function FirstPersonControls() {
     if (keys.current.a) movement.sub(right);
 
     // 3. VR Joystick Input (Left Controller - Move)
-    if (isVR && leftController?.inputSource?.gamepad) {
-      const axes = leftController.inputSource.gamepad.axes;
-      // Quest and WebXR usually map to [2,3] but fallback to [0,1]
-      const lx = (Math.abs(axes[2]) > 0.1 || Math.abs(axes[3]) > 0.1) ? axes[2] : (axes[0] || 0);
-      const ly = (Math.abs(axes[2]) > 0.1 || Math.abs(axes[3]) > 0.1) ? axes[3] : (axes[1] || 0);
-
-      if (Math.abs(lx) > 0.1 || Math.abs(ly) > 0.1) {
-        movement.addScaledVector(forward, -ly);
-        movement.addScaledVector(right, lx);
-      }
+    const driveStick = readThumbstick(leftController?.inputSource?.gamepad) ?? readThumbstick(rightController?.inputSource?.gamepad);
+    if (isVR && driveStick) {
+      movement.addScaledVector(forward, -driveStick.y);
+      movement.addScaledVector(right, driveStick.x);
     }
 
     // Apply speed
@@ -87,9 +100,9 @@ export function FirstPersonControls() {
     }
 
     // 4. VR Snap Turn (Right Controller)
-    if (isVR && rightController?.inputSource?.gamepad) {
-      const rAxes = rightController.inputSource.gamepad.axes;
-      const rx = Math.abs(rAxes[2]) > 0.1 ? rAxes[2] : (rAxes[0] || 0);
+    const turnStick = readThumbstick(rightController?.inputSource?.gamepad);
+    if (isVR && turnStick) {
+      const rx = turnStick.x;
       const now = state.clock.elapsedTime;
       
       if (Math.abs(rx) > 0.7 && now - lastTurnTime > 0.25) {

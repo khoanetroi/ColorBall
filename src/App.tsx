@@ -166,6 +166,28 @@ type GameHUDProps = {
   onOpenVR: () => void;
 };
 
+type VRLauncherProps = {
+  onOpenVR: () => void;
+  visible: boolean;
+};
+
+function VRLauncher({ onOpenVR, visible }: VRLauncherProps) {
+  if (!visible) return null;
+
+  return (
+    <div className="vr-launcher" role="region" aria-label="VR launch hub">
+      <div className="vr-launcher__panel">
+        <p className="vr-launcher__kicker">Meta Quest 3 ready</p>
+        <p className="vr-launcher__title">Enter VR Mode</p>
+        <p className="vr-launcher__copy">Open the immersive session, then use the left stick to move and the right stick to snap turn.</p>
+        <button className="hud-button hud-button--primary vr-launcher__button" type="button" onClick={onOpenVR}>
+          Open VR
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function GameHUD({ onOpenVR }: GameHUDProps) {
   const score = useGameStore((state) => state.score);
   const targetScore = useGameStore((state) => state.targetScore);
@@ -320,10 +342,18 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
 } export default function App() {
   const balls = useGameStore((state) => state.balls);
   const [isPresenting, setIsPresenting] = useState(xrStore.getState().session !== null);
-  useEffect(() => xrStore.subscribe((state: any) => setIsPresenting(state.session !== null)), []);
+  useEffect(() => {
+    const unsubscribe = xrStore.subscribe((state: any) => setIsPresenting(state.session !== null));
 
-  const handleOpenVR = () => {
-    xrStore.enterVR();
+    return unsubscribe;
+  }, []);
+
+  const handleOpenVR = async () => {
+    try {
+      await xrStore.enterVR();
+    } catch (error) {
+      console.error('Failed to enter VR session', error);
+    }
   };
 
   return (
@@ -343,6 +373,8 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
            <GameHUD onOpenVR={handleOpenVR} />
         </div>
       </div>
+
+      <VRLauncher onOpenVR={handleOpenVR} visible={!isPresenting} />
 
       <Canvas
         className="canvas-shell"
