@@ -62,7 +62,7 @@ const ChatBubble = ({ text, color, flash, rotation = [0, 0, 0] }: { text: string
       {/* Content */}
       {flash === 'success' ? (
         <group position={[0, 0, 0.22]}>
-          <HeartMesh scale={6} />
+          <Text fontSize={0.8} position={[0, 0.1, 0]}>😸</Text>
           <Text position={[0, -0.4, 0]} fontSize={0.15} color="#451a03" fontWeight="900">YUMMY!</Text>
         </group>
       ) : flash === 'error' ? (
