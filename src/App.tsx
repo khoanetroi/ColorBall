@@ -327,16 +327,26 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
   };
 
   return (
-    <div className="app-shell" style={{ zIndex: 0 }}>
-      {!isPresenting && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 1000, pointerEvents: 'none' }}>
+    <div className="app-shell" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+      {/* HUD OVERLAY - Forced to show for interaction */}
+      <div 
+        style={{ 
+          position: 'fixed', 
+          inset: 0, 
+          zIndex: 9999, 
+          pointerEvents: 'none',
+          display: isPresenting ? 'none' : 'block' // Only hide when actually in an immersive session
+        }}
+      >
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
            <div className="crosshair"></div>
            <GameHUD onOpenVR={handleOpenVR} />
         </div>
-      )}
+      </div>
 
       <Canvas
         className="canvas-shell"
+        style={{ width: '100%', height: '100%', display: 'block' }}
         camera={{ position: [0, 5, 12], fov: 60, near: 0.1, far: 500 }}
         dpr={[1, 1.75]}
         shadows
