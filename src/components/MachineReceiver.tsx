@@ -257,13 +257,6 @@ function MachineReceiverCore({ position, rotation = [0, 0, 0], level, gameState,
       <RigidBody type="fixed" sensor colliders={false}><CuboidCollider args={[1.2, 0.8, 1.0]} position={[0, -0.2, 1.5]} onIntersectionEnter={handleIntersect}/></RigidBody>
     </group>
   );
-}
-
-      <RigidBody type="fixed" colliders={false}><CuboidCollider args={[2.0, 2.0, 2.0]} position={[0, 0, 0]}/><CuboidCollider args={[2.0, 0.4, 2.0]} position={[0, -1.0, 0]}/></RigidBody>
-      <RigidBody type="fixed" sensor colliders={false}><CuboidCollider args={[1.2, 0.8, 1.0]} position={[0, -0.2, 1.5]} onIntersectionEnter={handleIntersect}/></RigidBody>
-    </group>
-  );
-}
 
 export const MachineReceiver = ({ position, rotation = [0, 0, 0] }: { position: [number, number, number]; rotation?: [number, number, number]; }) => {
   const level = useGameStore((state) => state.level);
