@@ -345,7 +345,7 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
         <XR store={xrStore}>
           <GameClock />
           
-            <WorldMenu />
+            <WorldMenu position={[-7, 0, -2]} rotation={[0, Math.PI / 6, 0]} scale={1.2} />
 
             <Suspense fallback={null}>
               <Physics gravity={[0, -9.81, 0]} timeStep={1 / 60}>
