@@ -316,10 +316,9 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
       )}
     </>
   );
-}
-
-export default function App() {
+}export default function App() {
   const balls = useGameStore((state) => state.balls);
+  const isPresenting = xrStore.use((state) => state.session !== null);
 
   const handleOpenVR = () => {
     xrStore.enterVR();
@@ -327,8 +326,12 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <div className="crosshair"></div>
-      <GameHUD onOpenVR={handleOpenVR} />
+      {!isPresenting && (
+        <>
+          <div className="crosshair"></div>
+          <GameHUD onOpenVR={handleOpenVR} />
+        </>
+      )}
 
       <Canvas
         className="canvas-shell"
