@@ -251,6 +251,18 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
     ballMeshRef.current.scale.y = THREE.MathUtils.damp(ballMeshRef.current.scale.y, targetScaleY, 12, delta);
     ballMeshRef.current.scale.z = THREE.MathUtils.damp(ballMeshRef.current.scale.z, targetScaleZ, 12, delta);
     ballMeshRef.current.rotation.y += delta * (hovered || isCurrentlyDragged ? 0.8 : 0.18);
+
+    // RAINBOW ANIMATION (Special logic for Rainbow Candy)
+    if (color === 22) { // BallColor.Rainbow
+      const material = (ballMeshRef.current.children[1] as THREE.Mesh).material as THREE.MeshStandardMaterial;
+      if (material) {
+        const hue = (state.clock.elapsedTime * 0.5) % 1;
+        const rainbowColor = new THREE.Color().setHSL(hue, 0.9, 0.6);
+        material.emissive.copy(rainbowColor);
+        material.emissiveIntensity = 1.2 + Math.sin(state.clock.elapsedTime * 4) * 0.4;
+        material.color.copy(rainbowColor);
+      }
+    }
   });
 
   return (
