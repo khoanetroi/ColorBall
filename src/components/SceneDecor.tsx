@@ -22,7 +22,6 @@ export function SceneDecor() {
 
       {/* Farm Scarecrow */}
       <FarmScarecrow position={[-6, 0.6, -10]} scale={1.2} rotation={[0, 0.4, 0]} />
-      <FarmScarecrow position={[14, 0.6, 6]} scale={1.0} rotation={[0, -0.6, 0]} />
 
       {/* Floating Low-Poly Clouds */}
       <FloatingCloud position={[-12, 12, -15]} scale={1.5} speed={0.4} />

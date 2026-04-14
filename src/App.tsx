@@ -4,6 +4,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { RoundedBox, Sky, Stars, Sparkles } from '@react-three/drei';
 import { RigidBody, Physics, CuboidCollider } from '@react-three/rapier';
 import { Ball } from './components/Ball';
+import { ColorGuideBoard } from './components/ColorGuideBoard';
 import { BallSpawner } from './components/BallSpawner';
 import { MachineMerger } from './components/MachineMerger';
 import { MachineReceiver } from './components/MachineReceiver';
@@ -393,7 +394,8 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
           
           <GameClock />
 
-          <WorldMenu position={[-14, 4, 4]} rotation={[0, Math.PI / 2, 0]} scale={1.3} />
+          <WorldMenu position={[-14.8, 4, 4]} rotation={[0, Math.PI / 2, 0]} scale={1.3} />
+          <ColorGuideBoard position={[14.8, 4, 4]} rotation={[0, -Math.PI / 2, 0]} scale={1.3} />
 
           <Suspense fallback={null}>
             <Physics gravity={[0, -9.81, 0]} timeStep={1 / 60}>

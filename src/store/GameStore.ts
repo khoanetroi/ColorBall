@@ -37,17 +37,17 @@ const levelConfigs: Record<number, LevelConfig> = {
   },
   1: {
     objective: 'Level 1: use only the three primary colors.',
-    targetScore: 10,
+    targetScore: 3,
     timeLimit: 0,
   },
   2: {
     objective: 'Level 2: mix primary colors with White sugar to create Pastels!',
-    targetScore: 20,
+    targetScore: 5,
     timeLimit: 180,
   },
   3: {
     objective: 'Ultimate Goal: mix advanced colors to create the RAINBOW CANDY! 🌈',
-    targetScore: 35,
+    targetScore: 5,
     timeLimit: 300,
   },
 };

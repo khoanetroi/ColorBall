@@ -3,13 +3,19 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { RigidBody, RapierRigidBody, BallCollider } from '@react-three/rapier';
 import { QuadraticBezierLine, type QuadraticBezierLineRef } from '@react-three/drei';
-import { type BallColorCode, getHexColor } from '../store/ColorSystem';
+import { BallColor, type BallColorCode, getHexColor } from '../store/ColorSystem';
 import { useGameStore } from '../store/GameStore';
 import { canGrabAtDistance, resolveGrabDistance } from '../utils/grab';
 
 const GRAB_SHELL_RADIUS = 0.68;
 const GRAB_SPRING_STRENGTH = 16;
 const GRAB_MAX_HOLD_SPEED = 10;
+const THROW_TRACKING_SHARPNESS = 24;
+const THROW_MIN_SPEED = 1.35;
+const THROW_MAX_SPEED = 22;
+const THROW_SAMPLE_MAX_SPEED = 34;
+const THROW_WEB_BOOST = 1.08;
+const THROW_VR_BOOST = 1.24;
 const LINE_SAG_BASE = 0.12;
 const LINE_WOBBLE_BASE = 0.08;
 
@@ -92,6 +98,10 @@ function GrabLine({ active, ballId, ballRef, color }: GrabLineProps) {
 export const Ball = ({ color, position, id }: { color: BallColorCode; position: [number, number, number]; id: string }) => {
   const rigidBodyRef = useRef<RapierRigidBody>(null);
   const ballMeshRef = useRef<THREE.Group>(null);
+  const throwVelocityRef = useRef(new THREE.Vector3());
+  const previousTargetRef = useRef<THREE.Vector3 | null>(null);
+  const wasDraggedRef = useRef(false);
+  const lastDragModeRef = useRef<'web' | 'vr'>('web');
   const [hovered, setHovered] = useState(false);
   
   const draggedBallId = useGameStore((state) => state.draggedBallId);
@@ -113,9 +123,6 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
   }, []);
 
   const handlePointerDown = useCallback((event: any) => {
-    event.stopPropagation();
-    capturePointer(event);
-    setHovered(true);
     const currentPos = rigidBodyRef.current?.translation();
     const origin = event.ray.origin as THREE.Vector3;
     const direction = event.ray.direction as THREE.Vector3;
@@ -127,6 +134,10 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
     if (!canGrabAtDistance(rawDistance)) {
       return;
     }
+
+    event.stopPropagation();
+    capturePointer(event);
+    setHovered(true);
 
     const distance = resolveGrabDistance(rawDistance);
 
@@ -168,11 +179,6 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
       rigidBodyRef.current.enableCcd(isCurrentlyDragged);
     }
 
-    if (!isCurrentlyDragged && rigidBodyRef.current) {
-      rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
-      rigidBodyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
-    }
-
     const timer = setTimeout(() => {
       if (!isCurrentlyDragged) {
         removeBall(id);
@@ -182,9 +188,40 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
   }, [id, isCurrentlyDragged, removeBall]);
 
   useFrame((state, delta) => {
+    const justReleased = wasDraggedRef.current && !isCurrentlyDragged;
+
+    if (justReleased && rigidBodyRef.current) {
+      const boost = lastDragModeRef.current === 'vr' ? THROW_VR_BOOST : THROW_WEB_BOOST;
+      const throwVelocity = throwVelocityRef.current.clone().multiplyScalar(boost);
+      const throwSpeed = throwVelocity.length();
+
+      if (throwSpeed >= THROW_MIN_SPEED) {
+        if (throwSpeed > THROW_MAX_SPEED) {
+          throwVelocity.setLength(THROW_MAX_SPEED);
+        }
+
+        rigidBodyRef.current.setLinvel({
+          x: throwVelocity.x,
+          y: throwVelocity.y,
+          z: throwVelocity.z,
+        }, true);
+
+        const spin = new THREE.Vector3(-throwVelocity.z, throwVelocity.y * 0.2, throwVelocity.x).multiplyScalar(0.33);
+        if (spin.length() > 8) {
+          spin.setLength(8);
+        }
+
+        rigidBodyRef.current.setAngvel({ x: spin.x, y: spin.y, z: spin.z }, true);
+      }
+
+      throwVelocityRef.current.set(0, 0, 0);
+      previousTargetRef.current = null;
+    }
+
     if (isCurrentlyDragged && rigidBodyRef.current) {
       const currentDragPointer = useGameStore.getState().dragPointer;
       const isVR = state.gl.xr.isPresenting;
+      lastDragModeRef.current = isVR ? 'vr' : 'web';
 
       if (!isVR && currentDragPointer) {
         const cameraOrigin = new THREE.Vector3();
@@ -218,6 +255,20 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
         const origin = new THREE.Vector3(dragPointer.origin[0], dragPointer.origin[1], dragPointer.origin[2]);
         const direction = new THREE.Vector3(dragPointer.direction[0], dragPointer.direction[1], dragPointer.direction[2]).normalize();
         const targetPos = origin.add(direction.multiplyScalar(dragPointer.distance));
+
+        if (!previousTargetRef.current) {
+          previousTargetRef.current = targetPos.clone();
+        } else {
+          const sampleVelocity = targetPos.clone().sub(previousTargetRef.current).multiplyScalar(1 / Math.max(delta, 0.0001));
+          if (sampleVelocity.length() > THROW_SAMPLE_MAX_SPEED) {
+            sampleVelocity.setLength(THROW_SAMPLE_MAX_SPEED);
+          }
+
+          const trackingAlpha = 1 - Math.exp(-delta * THROW_TRACKING_SHARPNESS);
+          throwVelocityRef.current.lerp(sampleVelocity, trackingAlpha);
+          previousTargetRef.current.copy(targetPos);
+        }
+
         const currentPos = rigidBodyRef.current.translation();
         const current = new THREE.Vector3(currentPos.x, currentPos.y, currentPos.z);
         const springAlpha = 1 - Math.exp(-delta * GRAB_SPRING_STRENGTH);
@@ -235,7 +286,11 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
         }, true);
         rigidBodyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
       }
+    } else {
+      previousTargetRef.current = null;
     }
+
+    wasDraggedRef.current = isCurrentlyDragged;
 
     if (!ballMeshRef.current) return;
 
@@ -253,7 +308,7 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
     ballMeshRef.current.rotation.y += delta * (hovered || isCurrentlyDragged ? 0.8 : 0.18);
 
     // RAINBOW ANIMATION (Special logic for Rainbow Candy)
-    if (color === 22) { // BallColor.Rainbow
+    if (color === BallColor.Rainbow) {
       const material = (ballMeshRef.current.children[1] as THREE.Mesh).material as THREE.MeshStandardMaterial;
       if (material) {
         const hue = (state.clock.elapsedTime * 0.5) % 1;

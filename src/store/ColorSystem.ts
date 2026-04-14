@@ -45,13 +45,15 @@ export const tertiaryColors = [
 ] as const;
 
 export const mixerColors = [BallColor.White, BallColor.Black] as const;
+export const pastelColors = [BallColor.Pink, BallColor.SkyBlue, BallColor.Mint, BallColor.Lavender] as const;
+export const shadeColors = [BallColor.Maroon, BallColor.Navy, BallColor.Brown] as const;
 
-// Targets for each level - Level 3 now aims for Rainbow!
+// Targets for each level follow the 3-machine progression.
 const levelTargetColors: Record<number, readonly BallColorCode[]> = {
   0: primaryColors,
   1: primaryColors,
-  2: [...secondaryColors, BallColor.Pink, BallColor.SkyBlue, BallColor.Lavender] as const,
-  3: [BallColor.Rainbow, BallColor.Maroon, BallColor.Navy, BallColor.Brown] as const,
+  2: pastelColors,
+  3: [BallColor.Rainbow, ...shadeColors] as const,
 };
 
 const colorLabels: Record<BallColorCode, string> = {
@@ -78,6 +80,46 @@ const colorLabels: Record<BallColorCode, string> = {
   [BallColor.Navy]: 'Midnight Navy',
   [BallColor.Brown]: 'Roasted Brown',
   [BallColor.Rainbow]: 'RAINBOW CANDY 🌈',
+};
+
+const createPairKey = (a: BallColorCode, b: BallColorCode) => {
+  return a < b ? `${a}:${b}` : `${b}:${a}`;
+};
+
+const mixRecipes: Record<string, BallColorCode> = {
+  // Primary mixes.
+  [createPairKey(BallColor.Red, BallColor.Blue)]: BallColor.Purple,
+  [createPairKey(BallColor.Red, BallColor.Yellow)]: BallColor.Orange,
+  [createPairKey(BallColor.Blue, BallColor.Yellow)]: BallColor.Green,
+
+  // Primary + white.
+  [createPairKey(BallColor.Red, BallColor.White)]: BallColor.Pink,
+  [createPairKey(BallColor.Blue, BallColor.White)]: BallColor.SkyBlue,
+  [createPairKey(BallColor.Green, BallColor.White)]: BallColor.Mint,
+  [createPairKey(BallColor.Purple, BallColor.White)]: BallColor.Lavender,
+  [createPairKey(BallColor.Yellow, BallColor.White)]: BallColor.YellowGreen,
+  [createPairKey(BallColor.Orange, BallColor.White)]: BallColor.YellowOrange,
+
+  // Primary + black.
+  [createPairKey(BallColor.Red, BallColor.Black)]: BallColor.Maroon,
+  [createPairKey(BallColor.Blue, BallColor.Black)]: BallColor.Navy,
+  [createPairKey(BallColor.Yellow, BallColor.Black)]: BallColor.Brown,
+  [createPairKey(BallColor.Orange, BallColor.Black)]: BallColor.Brown,
+  [createPairKey(BallColor.Green, BallColor.Black)]: BallColor.Brown,
+  [createPairKey(BallColor.Purple, BallColor.Black)]: BallColor.Maroon,
+
+  // Primary + secondary.
+  [createPairKey(BallColor.Red, BallColor.Orange)]: BallColor.RedOrange,
+  [createPairKey(BallColor.Red, BallColor.Purple)]: BallColor.RedPurple,
+  [createPairKey(BallColor.Blue, BallColor.Purple)]: BallColor.BluePurple,
+  [createPairKey(BallColor.Blue, BallColor.Green)]: BallColor.BlueGreen,
+  [createPairKey(BallColor.Yellow, BallColor.Green)]: BallColor.YellowGreen,
+  [createPairKey(BallColor.Yellow, BallColor.Orange)]: BallColor.YellowOrange,
+
+  // Secondary pairs create the special rainbow candy.
+  [createPairKey(BallColor.Orange, BallColor.Purple)]: BallColor.Rainbow,
+  [createPairKey(BallColor.Purple, BallColor.Green)]: BallColor.Rainbow,
+  [createPairKey(BallColor.Green, BallColor.Orange)]: BallColor.Rainbow,
 };
 
 export const getBallColorLabel = (color: BallColorCode): string => colorLabels[color] ?? 'Unknown';
@@ -124,41 +166,7 @@ export const mixColors = (a: BallColorCode, b: BallColorCode): BallColorCode => 
   if (a === BallColor.None || b === BallColor.None) return BallColor.None;
   if (a === b) return a;
 
-  const min = Math.min(a, b);
-  const max = Math.max(a, b);
+  if (a === BallColor.Rainbow || b === BallColor.Rainbow) return BallColor.Rainbow;
 
-  // Rainbow Logic: Mix any Tertiary or advanced mix with another advanced color
-  if (min >= 7 && max >= 7) return BallColor.Rainbow;
-
-  // Primary Mixes
-  if (min === BallColor.Red && max === BallColor.Blue) return BallColor.Purple;
-  if (min === BallColor.Red && max === BallColor.Yellow) return BallColor.Orange;
-  if (min === BallColor.Blue && max === BallColor.Yellow) return BallColor.Green;
-
-  // White Mixes (Pastels/Tints)
-  if (max === BallColor.White) {
-    if (min === BallColor.Red) return BallColor.Pink;
-    if (min === BallColor.Blue) return BallColor.SkyBlue;
-    if (min === BallColor.Green) return BallColor.Mint;
-    if (min === BallColor.Purple) return BallColor.Lavender;
-    if (min === BallColor.Yellow) return BallColor.YellowGreen; // Light yellow
-  }
-
-  // Black Mixes (Shades)
-  if (max === BallColor.Black) {
-    if (min === BallColor.Red) return BallColor.Maroon;
-    if (min === BallColor.Blue) return BallColor.Navy;
-    if (min === BallColor.Orange) return BallColor.Brown;
-    if (min === BallColor.Yellow) return BallColor.Brown;
-  }
-
-  // Tertiary Mixes
-  if (min === BallColor.Red && max === BallColor.Orange) return BallColor.RedOrange;
-  if (min === BallColor.Red && max === BallColor.Purple) return BallColor.RedPurple;
-  if (min === BallColor.Blue && max === BallColor.Purple) return BallColor.BluePurple;
-  if (min === BallColor.Blue && max === BallColor.Green) return BallColor.BlueGreen;
-  if (min === BallColor.Yellow && max === BallColor.Green) return BallColor.YellowGreen;
-  if (min === BallColor.Yellow && max === BallColor.Orange) return BallColor.YellowOrange;
-
-  return BallColor.None;
+  return mixRecipes[createPairKey(a, b)] ?? BallColor.None;
 };
