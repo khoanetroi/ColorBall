@@ -5,10 +5,11 @@ import { RigidBody, RapierRigidBody, BallCollider } from '@react-three/rapier';
 import { QuadraticBezierLine, type QuadraticBezierLineRef } from '@react-three/drei';
 import { type BallColorCode, getHexColor } from '../store/ColorSystem';
 import { useGameStore } from '../store/GameStore';
+import { canGrabAtDistance, resolveGrabDistance } from '../utils/grab';
 
 const GRAB_SHELL_RADIUS = 0.68;
-const GRAB_DISTANCE_BIAS = 0.15;
 const GRAB_SPRING_STRENGTH = 16;
+const GRAB_MAX_HOLD_SPEED = 10;
 const LINE_SAG_BASE = 0.12;
 const LINE_WOBBLE_BASE = 0.08;
 
@@ -119,9 +120,15 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
     const origin = event.ray.origin as THREE.Vector3;
     const direction = event.ray.direction as THREE.Vector3;
 
-    const distance = currentPos
-      ? Math.max(0.55, new THREE.Vector3(currentPos.x, currentPos.y, currentPos.z).distanceTo(origin) - GRAB_DISTANCE_BIAS)
-      : Math.max(0.55, event.distance ?? 0.55);
+    const rawDistance = currentPos
+      ? new THREE.Vector3(currentPos.x, currentPos.y, currentPos.z).distanceTo(origin)
+      : event.distance ?? 0.55;
+
+    if (!canGrabAtDistance(rawDistance)) {
+      return;
+    }
+
+    const distance = resolveGrabDistance(rawDistance);
 
     setDragPointer({
       origin: [origin.x, origin.y, origin.z],
@@ -157,6 +164,15 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
   }, [capturePointer, isCurrentlyDragged, releasePointer, setDragPointer, setDraggedBallId]);
 
   useEffect(() => {
+    if (rigidBodyRef.current) {
+      rigidBodyRef.current.enableCcd(isCurrentlyDragged);
+    }
+
+    if (!isCurrentlyDragged && rigidBodyRef.current) {
+      rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      rigidBodyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    }
+
     const timer = setTimeout(() => {
       if (!isCurrentlyDragged) {
         removeBall(id);
@@ -165,8 +181,37 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
     return () => clearTimeout(timer);
   }, [id, isCurrentlyDragged, removeBall]);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (isCurrentlyDragged && rigidBodyRef.current) {
+      const currentDragPointer = useGameStore.getState().dragPointer;
+      const isVR = state.gl.xr.isPresenting;
+
+      if (!isVR && currentDragPointer) {
+        const cameraOrigin = new THREE.Vector3();
+        const cameraDirection = new THREE.Vector3();
+
+        state.camera.getWorldPosition(cameraOrigin);
+        state.camera.getWorldDirection(cameraDirection);
+
+        const nextDragPointer = {
+          origin: [cameraOrigin.x, cameraOrigin.y, cameraOrigin.z] as [number, number, number],
+          direction: [cameraDirection.x, cameraDirection.y, cameraDirection.z] as [number, number, number],
+          distance: currentDragPointer.distance,
+        };
+
+        const hasChanged =
+          currentDragPointer.origin[0] !== nextDragPointer.origin[0] ||
+          currentDragPointer.origin[1] !== nextDragPointer.origin[1] ||
+          currentDragPointer.origin[2] !== nextDragPointer.origin[2] ||
+          currentDragPointer.direction[0] !== nextDragPointer.direction[0] ||
+          currentDragPointer.direction[1] !== nextDragPointer.direction[1] ||
+          currentDragPointer.direction[2] !== nextDragPointer.direction[2];
+
+        if (hasChanged) {
+          setDragPointer(nextDragPointer);
+        }
+      }
+
       const dragPointer = useGameStore.getState().dragPointer;
 
       if (dragPointer) {
@@ -176,14 +221,18 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
         const currentPos = rigidBodyRef.current.translation();
         const current = new THREE.Vector3(currentPos.x, currentPos.y, currentPos.z);
         const springAlpha = 1 - Math.exp(-delta * GRAB_SPRING_STRENGTH);
-        const softenedTarget = current.lerp(targetPos, springAlpha);
+        const softenedTarget = current.clone().lerp(targetPos, springAlpha);
+        const desiredVelocity = softenedTarget.clone().sub(current).multiplyScalar(1 / Math.max(delta, 0.0001));
 
-        rigidBodyRef.current.setTranslation({
-          x: softenedTarget.x,
-          y: softenedTarget.y,
-          z: softenedTarget.z,
+        if (desiredVelocity.length() > GRAB_MAX_HOLD_SPEED) {
+          desiredVelocity.setLength(GRAB_MAX_HOLD_SPEED);
+        }
+
+        rigidBodyRef.current.setLinvel({
+          x: desiredVelocity.x,
+          y: desiredVelocity.y,
+          z: desiredVelocity.z,
         }, true);
-        rigidBodyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
         rigidBodyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
       }
     }
