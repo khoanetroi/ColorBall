@@ -17,6 +17,12 @@ export interface BallData {
   position: [number, number, number];
 }
 
+export interface DragPointerState {
+  origin: [number, number, number];
+  direction: [number, number, number];
+  distance: number;
+}
+
 type LevelConfig = {
   objective: string;
   targetScore: number;
@@ -70,6 +76,7 @@ interface GameStore {
   candyDispenseRequests: number;
   isDraggingGlobal: boolean;
   draggedBallId: string | null;
+  dragPointer: DragPointerState | null;
   addPoint: (points: number) => void;
   tick: (delta: number) => void;
   startTutorial: () => void;
@@ -82,6 +89,7 @@ interface GameStore {
   requestCandyDispense: () => void;
   setIsDraggingGlobal: (dragging: boolean) => void;
   setDraggedBallId: (id: string | null) => void;
+  setDragPointer: (dragPointer: DragPointerState | null) => void;
 }
 
 const startLevelState = (level: number, sceneSeed: number): Pick<GameStore, 'level' | 'score' | 'targetScore' | 'timeLeft' | 'objective' | 'gameState' | 'sceneSeed' | 'balls' | 'combo' | 'bestCombo'> => {
@@ -115,6 +123,7 @@ export const useGameStore = create<GameStore>((set) => ({
   candyDispenseRequests: 0,
   isDraggingGlobal: false,
   draggedBallId: null,
+  dragPointer: null,
 
   addPoint: (points) => set((state) => {
     if (points > 0) {
@@ -206,4 +215,6 @@ export const useGameStore = create<GameStore>((set) => ({
     draggedBallId: id,
     isDraggingGlobal: id !== null
   }),
+
+  setDragPointer: (dragPointer) => set({ dragPointer }),
 }));

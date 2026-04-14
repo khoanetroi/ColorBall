@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
 import { useXRInputSourceState } from '@react-three/xr';
@@ -10,6 +10,10 @@ const VR_WALK_SPEED = 4.5;
 const JUMP_FORCE = 6;
 const TURN_AMOUNT = Math.PI / 4;
 const STICK_DEADZONE = 0.12;
+
+type FirstPersonControlsProps = {
+  xrOriginRef?: RefObject<THREE.Group | null>;
+};
 
 function readThumbstick(gamepad: Gamepad | null | undefined) {
   if (!gamepad?.axes) return null;
@@ -29,7 +33,7 @@ function readThumbstick(gamepad: Gamepad | null | undefined) {
   return null;
 }
 
-export function FirstPersonControls() {
+export function FirstPersonControls({ xrOriginRef }: FirstPersonControlsProps) {
   const { gl, camera } = useThree();
   const rbRef = useRef<RapierRigidBody>(null);
   const keys = useRef({ w: false, a: false, s: false, d: false, space: false });
@@ -106,11 +110,9 @@ export function FirstPersonControls() {
       const now = state.clock.elapsedTime;
       
       if (Math.abs(rx) > 0.7 && now - lastTurnTime > 0.25) {
-        const currentRotation = rbRef.current.rotation();
-        const turnQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -Math.sign(rx) * TURN_AMOUNT, 0));
-        const newRotation = new THREE.Quaternion(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w).multiply(turnQ);
-        
-        rbRef.current.setRotation(newRotation, true);
+        if (xrOriginRef?.current) {
+          xrOriginRef.current.rotation.y += -Math.sign(rx) * TURN_AMOUNT;
+        }
         setLastTurnTime(now);
       }
     }
@@ -130,9 +132,10 @@ export function FirstPersonControls() {
       // First Person smoothing on Desktop
       camera.position.lerp(new THREE.Vector3(pos.x, pos.y + 0.85, pos.z), 0.7);
     } else {
-      // In VR, the Headset is absolute. We keep the physics collider centered under the headset horizontally.
-      const headPos = new THREE.Vector3().setFromMatrixPosition(camera.matrixWorld);
-      rbRef.current.setTranslation({ x: headPos.x, y: pos.y, z: headPos.z }, true);
+      // In VR, the physics body drives the player's world origin.
+      if (xrOriginRef?.current) {
+        xrOriginRef.current.position.set(pos.x, 0, pos.z);
+      }
     }
 
     if (Math.abs(rbRef.current.linvel().y) < 0.1) isGrounded.current = true;

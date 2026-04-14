@@ -17,6 +17,7 @@ export const BallSpawner = ({
   rotation?: [number, number, number];
 }) => {
   const spawnBall = useGameStore((state) => state.spawnBall);
+  const requestCandyDispense = useGameStore((state) => state.requestCandyDispense);
   const gameState = useGameStore((state) => state.gameState);
   const candyDispenseRequests = useGameStore((state) => state.candyDispenseRequests);
 
@@ -32,6 +33,11 @@ export const BallSpawner = ({
   const signRef = useRef<THREE.Group>(null);
 
   const spawnColors = getSpawnColorsForLevel();
+
+  const handleMachinePointerDown = useCallback((event: any) => {
+    event.stopPropagation();
+    requestCandyDispense();
+  }, [requestCandyDispense]);
 
   const dispenseCandy = useCallback(() => {
     if (gameState !== GameState.Playing || dispenseTimeoutRef.current || isDispensingRef.current) {
@@ -117,7 +123,13 @@ export const BallSpawner = ({
   });
 
   return (
-    <group ref={machineRef} position={position} rotation={rotation} userData={{ name: 'candy-machine' }}>
+    <group
+      ref={machineRef}
+      position={position}
+      rotation={rotation}
+      userData={{ name: 'candy-machine' }}
+      onPointerDown={handleMachinePointerDown}
+    >
       {/* Boba Shop Counter Base */}
       <group position={[0, -1.05, 0]}>
         <RoundedBox args={[2.5, 0.5, 1.8]} radius={0.1} smoothness={4} castShadow receiveShadow>

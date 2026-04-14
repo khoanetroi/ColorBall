@@ -341,9 +341,10 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
   );
 } export default function App() {
   const balls = useGameStore((state) => state.balls);
-  const [isPresenting, setIsPresenting] = useState(xrStore.getState().session !== null);
+  const xrOriginRef = useRef<THREE.Group>(null);
+  const [isPresenting, setIsPresenting] = useState(xrStore.getState().session != null);
   useEffect(() => {
-    const unsubscribe = xrStore.subscribe((state: any) => setIsPresenting(state.session !== null));
+    const unsubscribe = xrStore.subscribe((state: any) => setIsPresenting(state.session != null));
 
     return unsubscribe;
   }, []);
@@ -387,7 +388,7 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
         <fog attach="fog" args={['#d8ecff', 30, 120]} />
 
         <XR store={xrStore}>
-          <XROrigin position={[0, 0, 0]} />
+          <XROrigin ref={xrOriginRef} position={[0, 0, 0]} />
           <WristHUD />
           
           <GameClock />
@@ -397,7 +398,7 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
           <Suspense fallback={null}>
             <Physics gravity={[0, -9.81, 0]} timeStep={1 / 60}>
               <InteractionSystem />
-              <FirstPersonControls />
+              <FirstPersonControls xrOriginRef={xrOriginRef} />
 
               <GlobalEnvironment />
               <FloatingIsland />
