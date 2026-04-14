@@ -32,7 +32,8 @@ export const BallSpawner = ({
   const seedOrbsRef = useRef<THREE.Group>(null);
   const signRef = useRef<THREE.Group>(null);
 
-  const spawnColors = getSpawnColorsForLevel();
+  const level = useGameStore((state) => state.level);
+  const spawnColors = getSpawnColorsForLevel(level);
 
   const handleMachinePointerDown = useCallback((event: any) => {
     event.stopPropagation();

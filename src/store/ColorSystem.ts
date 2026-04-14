@@ -12,6 +12,14 @@ export const BallColor = {
   BlueGreen: 10,
   YellowGreen: 11,
   YellowOrange: 12,
+  // New "Premium" Colors
+  White: 13,
+  Pink: 14,
+  Sky: 15,
+  Cream: 16,
+  Mint: 17,
+  Lavender: 18,
+  Peach: 19,
 } as const;
 
 export type BallColorCode = (typeof BallColor)[keyof typeof BallColor];
@@ -27,11 +35,20 @@ export const tertiaryColors = [
   BallColor.YellowOrange,
 ] as const;
 
+export const pastelColors = [
+  BallColor.Pink,
+  BallColor.Sky,
+  BallColor.Cream,
+  BallColor.Mint,
+  BallColor.Lavender,
+  BallColor.Peach,
+] as const;
+
 const levelTargetColors: Record<number, readonly BallColorCode[]> = {
   0: primaryColors,
   1: primaryColors,
-  2: secondaryColors,
-  3: tertiaryColors,
+  2: [...secondaryColors, BallColor.White, BallColor.Pink],
+  3: [...tertiaryColors, ...pastelColors],
 };
 
 const colorLabels: Record<BallColorCode, string> = {
@@ -48,6 +65,13 @@ const colorLabels: Record<BallColorCode, string> = {
   [BallColor.BlueGreen]: 'Blue Green',
   [BallColor.YellowGreen]: 'Yellow Green',
   [BallColor.YellowOrange]: 'Yellow Orange',
+  [BallColor.White]: 'Sugar White',
+  [BallColor.Pink]: 'Boba Pink',
+  [BallColor.Sky]: 'Sky Blue',
+  [BallColor.Cream]: 'Cream',
+  [BallColor.Mint]: 'Mint Green',
+  [BallColor.Lavender]: 'Lavender',
+  [BallColor.Peach]: 'Peach',
 };
 
 export const getBallColorLabel = (color: BallColorCode): string => colorLabels[color] ?? 'Unknown';
@@ -78,12 +102,27 @@ export const getHexColor = (color: BallColorCode): string => {
       return '#d9ea45';
     case BallColor.YellowOrange:
       return '#ffbf4d';
+    case BallColor.White:
+      return '#ffffff';
+    case BallColor.Pink:
+      return '#ff85a2';
+    case BallColor.Sky:
+      return '#a5d8ff';
+    case BallColor.Cream:
+      return '#faf3e0';
+    case BallColor.Mint:
+      return '#b2f2bb';
+    case BallColor.Lavender:
+      return '#d0bfff';
+    case BallColor.Peach:
+      return '#ffcc99';
     default:
       return '#ffffff';
   }
 };
 
-export const getSpawnColorsForLevel = (): readonly BallColorCode[] => {
+export const getSpawnColorsForLevel = (level: number): readonly BallColorCode[] => {
+  if (level >= 2) return [...primaryColors, BallColor.White];
   return primaryColors;
 };
 
@@ -98,15 +137,34 @@ export const mixColors = (a: BallColorCode, b: BallColorCode): BallColorCode => 
   const min = Math.min(a, b);
   const max = Math.max(a, b);
 
+  // Classic Mixes
   if (min === BallColor.Red && max === BallColor.Blue) return BallColor.Purple;
   if (min === BallColor.Red && max === BallColor.Yellow) return BallColor.Orange;
   if (min === BallColor.Blue && max === BallColor.Yellow) return BallColor.Green;
+  
+  // Tertiary Mixes
   if (min === BallColor.Red && max === BallColor.Orange) return BallColor.RedOrange;
   if (min === BallColor.Red && max === BallColor.Purple) return BallColor.RedPurple;
   if (min === BallColor.Blue && max === BallColor.Purple) return BallColor.BluePurple;
   if (min === BallColor.Blue && max === BallColor.Green) return BallColor.BlueGreen;
   if (min === BallColor.Yellow && max === BallColor.Green) return BallColor.YellowGreen;
   if (min === BallColor.Yellow && max === BallColor.Orange) return BallColor.YellowOrange;
+
+  // Pastel Mixes (Anything + White)
+  if (max === BallColor.White) {
+    if (min === BallColor.Red) return BallColor.Pink;
+    if (min === BallColor.Blue) return BallColor.Sky;
+    if (min === BallColor.Yellow) return BallColor.Cream;
+    if (min === BallColor.Green) return BallColor.Mint;
+    if (min === BallColor.Purple) return BallColor.Lavender;
+    if (min === BallColor.Orange) return BallColor.Peach;
+  }
+  
+  // Fallback for White as min
+  if (min === BallColor.White) {
+     if (max === BallColor.Red) return BallColor.Pink;
+     // ... already covered by max check if max is color, but let's be safe
+  }
 
   return BallColor.None;
 };

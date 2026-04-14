@@ -41,14 +41,14 @@ const levelConfigs: Record<number, LevelConfig> = {
     timeLimit: 0,
   },
   2: {
-    objective: 'Level 2: mix primary colors to create secondary colors.',
-    targetScore: 15,
+    objective: 'Level 2: mix primary colors for secondary rewards. Use the new Sugar (White) balls to create Pink!',
+    targetScore: 18,
     timeLimit: 180,
   },
   3: {
-    objective: 'Level 3: mix secondary and primary colors to build tertiary colors.',
-    targetScore: 25,
-    timeLimit: 240,
+    objective: 'Level 3: the Pastel Revolution! Mix any color with Sugar (White) to create stunning Pastel delights.',
+    targetScore: 35,
+    timeLimit: 280,
   },
 };
 
