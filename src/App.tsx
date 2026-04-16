@@ -18,9 +18,7 @@ import { WristHUD } from './components/WristHUD';
 import { createXRStore, XR, XROrigin } from '@react-three/xr';
 
 const xrStore = createXRStore({
-  depthSensing: true,
   handTracking: true,
-  layers: true,
 });
 
 function GameClock() {
