@@ -15,6 +15,7 @@ import { GameState, useGameStore } from './store/GameStore';
 import { FirstPersonControls } from './components/FirstPersonControls';
 import { InteractionSystem } from './components/InteractionSystem';
 import { WristHUD } from './components/WristHUD';
+import { VRGameOverlay } from './components/VRGameOverlay';
 import { createXRStore, XR, XROrigin } from '@react-three/xr';
 
 const xrStore = createXRStore({
@@ -389,6 +390,7 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
         <XR store={xrStore}>
           <XROrigin ref={xrOriginRef} position={[0, 0, 0]} />
           <WristHUD />
+          <VRGameOverlay />
           
           <GameClock />
 
