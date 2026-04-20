@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import type { BallColorCode } from './ColorSystem';
 
+export type Difficulty = 'easy' | 'hard';
+
 export const GameState = {
   Start: 0,
   Tutorial: 1,
@@ -15,6 +17,7 @@ export interface BallData {
   id: string;
   color: BallColorCode;
   position: [number, number, number];
+  isMixed?: boolean;
 }
 
 export interface DragPointerState {
@@ -26,29 +29,31 @@ export interface DragPointerState {
 type LevelConfig = {
   objective: string;
   targetScore: number;
-  timeLimit: number;
+};
+
+const hardTimeLimits: Record<number, number> = {
+  0: 0,
+  1: 120,
+  2: 150,
+  3: 180,
 };
 
 const levelConfigs: Record<number, LevelConfig> = {
   0: {
-    objective: 'Tutorial: learn the feeder, drag a ball, and feed the coop.',
+    objective: 'Tutorial: learn the spawner, drag a ball, and deliver it.',
     targetScore: 3,
-    timeLimit: 0,
   },
   1: {
-    objective: 'Level 1: use only the three primary colors.',
+    objective: 'Level 1: Sort the 3 primary colors (Red, Blue, Yellow).',
     targetScore: 3,
-    timeLimit: 0,
   },
   2: {
-    objective: 'Level 2: mix primary colors with White sugar to create Pastels!',
-    targetScore: 5,
-    timeLimit: 180,
+    objective: 'Level 2: Mix primary colors to create secondary colors (Orange, Purple, Green).',
+    targetScore: 3,
   },
   3: {
-    objective: 'Ultimate Goal: mix advanced colors to create the RAINBOW CANDY! 🌈',
-    targetScore: 5,
-    timeLimit: 300,
+    objective: 'Level 3: Mix to create tertiary colors (Red-Orange, Red-Purple, etc.).',
+    targetScore: 6,
   },
 };
 
@@ -77,29 +82,32 @@ interface GameStore {
   isDraggingGlobal: boolean;
   draggedBallId: string | null;
   dragPointer: DragPointerState | null;
+  difficulty: Difficulty;
   addPoint: (points: number) => void;
   tick: (delta: number) => void;
   startTutorial: () => void;
   startLevel: (level: number) => void;
   advanceLevel: () => void;
   resetGame: () => void;
-  spawnBall: (color: BallColorCode, position: [number, number, number]) => void;
+  spawnBall: (color: BallColorCode, position: [number, number, number], isMixed?: boolean) => void;
   removeBall: (id: string) => void;
   clearBalls: () => void;
   requestCandyDispense: () => void;
   setIsDraggingGlobal: (dragging: boolean) => void;
   setDraggedBallId: (id: string | null) => void;
   setDragPointer: (dragPointer: DragPointerState | null) => void;
+  setDifficulty: (difficulty: Difficulty) => void;
 }
 
-const startLevelState = (level: number, sceneSeed: number): Pick<GameStore, 'level' | 'score' | 'targetScore' | 'timeLeft' | 'objective' | 'gameState' | 'sceneSeed' | 'balls' | 'combo' | 'bestCombo'> => {
+const startLevelState = (level: number, sceneSeed: number, difficulty: Difficulty): Pick<GameStore, 'level' | 'score' | 'targetScore' | 'timeLeft' | 'objective' | 'gameState' | 'sceneSeed' | 'balls' | 'combo' | 'bestCombo'> => {
   const config = getLevelConfig(level);
+  const timeLimit = difficulty === 'hard' ? (hardTimeLimits[level] ?? 0) : 0;
 
   return {
     level,
     score: 0,
     targetScore: config.targetScore,
-    timeLeft: config.timeLimit,
+    timeLeft: timeLimit,
     objective: config.objective,
     gameState: GameState.Playing,
     sceneSeed,
@@ -113,7 +121,7 @@ export const useGameStore = create<GameStore>((set) => ({
   level: 1,
   score: 0,
   targetScore: levelConfigs[1].targetScore,
-  timeLeft: levelConfigs[1].timeLimit,
+  timeLeft: 0,
   objective: levelConfigs[1].objective,
   gameState: GameState.Playing,
   sceneSeed: 0,
@@ -124,6 +132,7 @@ export const useGameStore = create<GameStore>((set) => ({
   isDraggingGlobal: false,
   draggedBallId: null,
   dragPointer: null,
+  difficulty: 'easy' as Difficulty,
 
   addPoint: (points) => set((state) => {
     if (points > 0) {
@@ -165,9 +174,9 @@ export const useGameStore = create<GameStore>((set) => ({
     return { timeLeft };
   }),
 
-  startTutorial: () => set((state) => ({ ...startLevelState(0, state.sceneSeed + 1) })),
+  startTutorial: () => set((state) => ({ ...startLevelState(0, state.sceneSeed + 1, state.difficulty) })),
 
-  startLevel: (level) => set((state) => ({ ...startLevelState(level, state.sceneSeed + 1) })),
+  startLevel: (level) => set((state) => ({ ...startLevelState(level, state.sceneSeed + 1, state.difficulty) })),
 
   advanceLevel: () => set((state) => {
     if (state.level >= 3) {
@@ -177,25 +186,32 @@ export const useGameStore = create<GameStore>((set) => ({
       };
     }
 
-    return { ...startLevelState(state.level + 1, state.sceneSeed + 1) };
+    return { ...startLevelState(state.level + 1, state.sceneSeed + 1, state.difficulty) };
   }),
 
-  resetGame: () => set((state) => ({ ...startLevelState(1, state.sceneSeed + 1) })),
+  resetGame: () => set((state) => ({ ...startLevelState(1, state.sceneSeed + 1, state.difficulty) })),
 
-  spawnBall: (color, position) => set((state) => {
-    const MAX_BALLS = 15;
+  spawnBall: (color, position, isMixed) => set((state) => {
+    const MAX_BALLS = 18; // Increased slightly to accommodate complex mixing
     const newBalls = [...state.balls];
     
     if (newBalls.length >= MAX_BALLS) {
-      const dropIndex = newBalls.findIndex((ball) => ball.id !== state.draggedBallId);
+      // Find oldest ball that is NOT dragged and NOT mixed (if possible)
+      const dropIndex = newBalls.findIndex((ball) => ball.id !== state.draggedBallId && !ball.isMixed);
       if (dropIndex !== -1) {
         newBalls.splice(dropIndex, 1);
       } else {
-        return state; // Edge case: cannot spawn
+        // Fallback: just drop the oldest non-dragged ball
+        const forceDropIndex = newBalls.findIndex((ball) => ball.id !== state.draggedBallId);
+        if (forceDropIndex !== -1) {
+          newBalls.splice(forceDropIndex, 1);
+        } else {
+          return state; // Edge case: cannot spawn
+        }
       }
     }
     
-    newBalls.push({ id: createBallId(), color, position });
+    newBalls.push({ id: createBallId(), color, position, isMixed });
     return { balls: newBalls };
   }),
 
@@ -217,4 +233,6 @@ export const useGameStore = create<GameStore>((set) => ({
   }),
 
   setDragPointer: (dragPointer) => set({ dragPointer }),
+
+  setDifficulty: (difficulty) => set({ difficulty }),
 }));

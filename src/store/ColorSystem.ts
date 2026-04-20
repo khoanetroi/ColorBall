@@ -48,12 +48,12 @@ export const mixerColors = [BallColor.White, BallColor.Black] as const;
 export const pastelColors = [BallColor.Pink, BallColor.SkyBlue, BallColor.Mint, BallColor.Lavender] as const;
 export const shadeColors = [BallColor.Maroon, BallColor.Navy, BallColor.Brown] as const;
 
-// Targets for each level follow the 3-machine progression.
+// Targets for each level follow the color-wheel progression.
 const levelTargetColors: Record<number, readonly BallColorCode[]> = {
   0: primaryColors,
   1: primaryColors,
-  2: pastelColors,
-  3: [BallColor.Rainbow, ...shadeColors] as const,
+  2: secondaryColors,
+  3: tertiaryColors,
 };
 
 const colorLabels: Record<BallColorCode, string> = {
@@ -153,7 +153,7 @@ export const getHexColor = (color: BallColorCode): string => {
 };
 
 export const getSpawnColorsForLevel = (level: number): readonly BallColorCode[] => {
-  if (level === 2) return [...primaryColors, BallColor.White];
+  if (level === 2) return [...primaryColors];
   if (level >= 3) return [...primaryColors, BallColor.White, BallColor.Black];
   return primaryColors;
 };

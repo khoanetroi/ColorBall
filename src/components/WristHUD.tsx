@@ -11,6 +11,7 @@ export function WristHUD() {
   const targetScore = useGameStore((state) => state.targetScore);
   const timeLeft = useGameStore((state) => state.timeLeft);
   const level = useGameStore((state) => state.level);
+  const difficulty = useGameStore((state) => state.difficulty);
 
   const timeLabel = useMemo(() => {
     if (timeLeft <= 0) return '∞';
@@ -53,14 +54,14 @@ export function WristHUD() {
           color="#be185d" 
           fontWeight="900"
         >
-          FARMER HUD 🍎
+          COLOR HUD 🎨
         </DreiText>
 
         {/* Stats Grid */}
         <group position={[0, -0.005, 0.001]}>
           {/* Candy */}
           <group position={[-0.07, 0.02, 0]}>
-            <DreiText fontSize={0.007} color="#9d174d" fontWeight="bold">CANDY</DreiText>
+            <DreiText fontSize={0.007} color="#9d174d" fontWeight="bold">SCORE</DreiText>
             <DreiText position={[0, -0.012, 0]} fontSize={0.012} color="#2b241d" fontWeight="900">
               {score}/{targetScore}
             </DreiText>
@@ -94,7 +95,7 @@ export function WristHUD() {
           color="#be185d" 
           fontWeight="900"
         >
-          XR SESSION CONNECTED
+          {difficulty === 'hard' ? 'HARD MODE ⏱' : 'EASY MODE ∞'}
         </DreiText>
       </group>
     </XRSpace>

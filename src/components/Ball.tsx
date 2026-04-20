@@ -95,7 +95,7 @@ function GrabLine({ active, ballId, ballRef, color }: GrabLineProps) {
   );
 }
 
-export const Ball = ({ color, position, id }: { color: BallColorCode; position: [number, number, number]; id: string }) => {
+export const Ball = ({ color, position, id, isMixed }: { color: BallColorCode; position: [number, number, number]; id: string; isMixed?: boolean }) => {
   const rigidBodyRef = useRef<RapierRigidBody>(null);
   const ballMeshRef = useRef<THREE.Group>(null);
   const throwVelocityRef = useRef(new THREE.Vector3());
@@ -179,13 +179,15 @@ export const Ball = ({ color, position, id }: { color: BallColorCode; position: 
       rigidBodyRef.current.enableCcd(isCurrentlyDragged);
     }
 
-    const timer = setTimeout(() => {
-      if (!isCurrentlyDragged) {
-        removeBall(id);
-      }
-    }, 15000);
-    return () => clearTimeout(timer);
-  }, [id, isCurrentlyDragged, removeBall]);
+    if (!isMixed) {
+      const timer = setTimeout(() => {
+        if (!isCurrentlyDragged) {
+          removeBall(id);
+        }
+      }, 15000);
+      return () => clearTimeout(timer);
+    }
+  }, [id, isCurrentlyDragged, removeBall, isMixed]);
 
   useFrame((state, delta) => {
     const justReleased = wasDraggedRef.current && !isCurrentlyDragged;

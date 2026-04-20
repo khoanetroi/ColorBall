@@ -39,17 +39,21 @@ type RecipeCardProps = {
   footer: string;
 };
 
+// Level 2: Primary + Primary = Secondary
 const level2Recipes: RecipeStep[] = [
-  { left: BallColor.Red, modifier: BallColor.White, result: BallColor.Pink, resultLabel: 'Pink' },
-  { left: BallColor.Blue, modifier: BallColor.White, result: BallColor.SkyBlue, resultLabel: 'Sky Blue' },
-  { left: BallColor.Green, modifier: BallColor.White, result: BallColor.Mint, resultLabel: 'Mint' },
-  { left: BallColor.Purple, modifier: BallColor.White, result: BallColor.Lavender, resultLabel: 'Lavender' },
+  { left: BallColor.Red, modifier: BallColor.Blue, result: BallColor.Purple, resultLabel: 'Purple' },
+  { left: BallColor.Red, modifier: BallColor.Yellow, result: BallColor.Orange, resultLabel: 'Orange' },
+  { left: BallColor.Blue, modifier: BallColor.Yellow, result: BallColor.Green, resultLabel: 'Green' },
 ];
 
+// Level 3: Primary + Secondary = Tertiary
 const level3Recipes: RecipeStep[] = [
-  { left: BallColor.Red, modifier: BallColor.Black, result: BallColor.Maroon, resultLabel: 'Maroon' },
-  { left: BallColor.Blue, modifier: BallColor.Black, result: BallColor.Navy, resultLabel: 'Navy' },
-  { left: BallColor.Yellow, modifier: BallColor.Black, result: BallColor.Brown, resultLabel: 'Brown' },
+  { left: BallColor.Red, modifier: BallColor.Orange, result: BallColor.RedOrange, resultLabel: 'Red-Orange' },
+  { left: BallColor.Red, modifier: BallColor.Purple, result: BallColor.RedPurple, resultLabel: 'Red-Purple' },
+  { left: BallColor.Blue, modifier: BallColor.Purple, result: BallColor.BluePurple, resultLabel: 'Blue-Purple' },
+  { left: BallColor.Blue, modifier: BallColor.Green, result: BallColor.BlueGreen, resultLabel: 'Blue-Green' },
+  { left: BallColor.Yellow, modifier: BallColor.Green, result: BallColor.YellowGreen, resultLabel: 'Yellow-Green' },
+  { left: BallColor.Yellow, modifier: BallColor.Orange, result: BallColor.YellowOrange, resultLabel: 'Yellow-Orange' },
 ];
 
 function ColorChip({ color, position, label, rainbow = false, radius = 0.13, labelSize = 0.072 }: ChipProps) {
@@ -119,28 +123,28 @@ function RecipeCard({ position, badge, title, subtitle, background, accent, rows
   return (
     <group position={position}>
       <mesh castShadow receiveShadow>
-        <planeGeometry args={[3.62, 3.18]} />
+        <planeGeometry args={[3.62, rows.length > 3 ? 4.2 : 3.18]} />
         <meshStandardMaterial color={background} roughness={1} />
       </mesh>
 
-      <mesh position={[0, 1.22, 0.01]}>
+      <mesh position={[0, rows.length > 3 ? 1.72 : 1.22, 0.01]}>
         <planeGeometry args={[2.96, 0.34]} />
         <meshStandardMaterial color={accent} roughness={1} transparent opacity={0.32} />
       </mesh>
 
-      <DreiText position={[-1.36, 1.22, 0.02]} fontSize={0.102} color="#9d174d" fontWeight="900" anchorX="left" letterSpacing={0.02}>
+      <DreiText position={[-1.36, rows.length > 3 ? 1.72 : 1.22, 0.02]} fontSize={0.102} color="#9d174d" fontWeight="900" anchorX="left" letterSpacing={0.02}>
         {badge}
       </DreiText>
 
-      <DreiText position={[0, 0.84, 0.02]} fontSize={0.245} color="#5b1f14" fontWeight="900" anchorX="center" letterSpacing={0.01}>
+      <DreiText position={[0, rows.length > 3 ? 1.34 : 0.84, 0.02]} fontSize={0.245} color="#5b1f14" fontWeight="900" anchorX="center" letterSpacing={0.01}>
         {title}
       </DreiText>
 
-      <DreiText position={[0, 0.74, 0.02]} maxWidth={3.05} textAlign="center" fontSize={0.069} color="#7c2d12" fontWeight="700" anchorX="center">
+      <DreiText position={[0, rows.length > 3 ? 1.24 : 0.74, 0.02]} maxWidth={3.05} textAlign="center" fontSize={0.069} color="#7c2d12" fontWeight="700" anchorX="center">
         {subtitle}
       </DreiText>
 
-      <group position={[0, -0.08, 0.02]}>
+      <group position={[0, rows.length > 3 ? 0.12 : -0.08, 0.02]}>
         {rows.map((recipe, index) => (
           <FormulaRow
             key={`${recipe.left}-${recipe.modifier}-${recipe.result}`}
@@ -151,7 +155,7 @@ function RecipeCard({ position, badge, title, subtitle, background, accent, rows
         ))}
       </group>
 
-      <DreiText position={[0, footerY, 0.02]} fontSize={0.076} color="#9d174d" fontWeight="700" anchorX="center">
+      <DreiText position={[0, rows.length > 3 ? -2.6 : footerY, 0.02]} fontSize={0.076} color="#9d174d" fontWeight="700" anchorX="center">
         {footer}
       </DreiText>
     </group>
@@ -217,34 +221,36 @@ export function ColorGuideBoard({ position = [0, 0, 0], rotation = [0, 0, 0], sc
           </mesh>
         ))}
 
-        <group position={[0, 2.28, 0.03]}>
-          <DreiText fontSize={0.33} color="#be185d" fontWeight="900" letterSpacing={0.02}>
-            COLOR GUIDE ✨
+        <group position={[0, 2.35, 0.03]}>
+          {/* Logo with all formula colors */}
+          <group position={[0, 0.45, 0]}>
+            {[
+              '#ef4444', '#3b82f6', '#eab308', '#f97316', '#22c55e', '#a855f7', '#000000', '#ffffff'
+            ].map((c, i) => (
+              <mesh key={i} position={[(i - 3.5) * 0.35, 0, 0]}>
+                <sphereGeometry args={[0.12, 32, 32]} />
+                <meshStandardMaterial color={c} roughness={0.2} metalness={0.1} />
+              </mesh>
+            ))}
+          </group>
+          <DreiText position={[0, 0, 0]} fontSize={0.35} color="#be185d" fontWeight="900" letterSpacing={0.02}>
+            COLOR RECIPES
           </DreiText>
-          <DreiText position={[0, -0.28, 0]} fontSize={0.1} color="#7c2d12" fontWeight="700" anchorX="center">
-            Sweet formula cheatsheet for the mixer machines
+          <DreiText position={[0, -0.3, 0]} fontSize={0.11} color="#7c2d12" fontWeight="700" anchorX="center">
+            Mixing formula cheatsheet for Level 2 & 3
           </DreiText>
-
-          <mesh position={[-3.28, -0.02, -0.01]}>
-            <circleGeometry args={[0.11, 20]} />
-            <meshStandardMaterial color="#f472b6" roughness={1} />
-          </mesh>
-          <mesh position={[3.28, -0.02, -0.01]}>
-            <circleGeometry args={[0.11, 20]} />
-            <meshStandardMaterial color="#60a5fa" roughness={1} />
-          </mesh>
         </group>
 
         <group position={[-2.15, -0.04, 0.03]}>
           <RecipeCard
             position={[0, 0, 0]}
             badge="LEVEL 2"
-            title="PASTELS ♡"
-            subtitle="White softens each base color into lighter candy tones."
+            title="SECONDARY ♡"
+            subtitle="Mix two primary colors to create secondary colors."
             background="#fdf2f8"
             accent="#f43f5e"
             rows={level2Recipes}
-            footer="White keeps every recipe soft and bright."
+            footer="Primary + Primary = Secondary"
           />
         </group>
 
@@ -252,23 +258,22 @@ export function ColorGuideBoard({ position = [0, 0, 0], rotation = [0, 0, 0], sc
           <RecipeCard
             position={[0, 0, 0]}
             badge="LEVEL 3"
-            title="SHADES ✦"
-            subtitle="Black deepens each base color into darker candy tones."
+            title="TERTIARY ✦"
+            subtitle="Mix a primary with a secondary to create tertiary."
             background="#eff6ff"
             accent="#60a5fa"
             rows={level3Recipes}
-            footer="Black makes the palette deeper and heavier."
+            footer="Primary + Secondary = Tertiary"
           />
         </group>
 
-        <group position={[0, -1.98, 0.03]}>
+        <group position={[0, -2.45, 0.03]}>
           <mesh>
-            <planeGeometry args={[6.2, 0.52]} />
+            <planeGeometry args={[7.2, 0.45]} />
             <meshStandardMaterial color="#fff7cc" roughness={1} />
           </mesh>
-          <ColorChip color={BallColor.Rainbow} position={[-2.52, 0.03, 0.02]} label="Rainbow" rainbow radius={0.14} labelSize={0.07} />
-          <DreiText position={[-1.86, 0.0, 0.02]} fontSize={0.104} color="#7c2d12" fontWeight="900" anchorX="left" letterSpacing={0.01}>
-            Secondary + Secondary = Rainbow
+          <DreiText position={[0, 0.0, 0.02]} fontSize={0.11} color="#7c2d12" fontWeight="900" anchorX="center" letterSpacing={0.01}>
+            White + Black are also available in Level 3 for advanced mixing!
           </DreiText>
         </group>
       </group>

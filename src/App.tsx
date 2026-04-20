@@ -12,9 +12,10 @@ import { SceneDecor } from './components/SceneDecor';
 import { WorldMenu } from './components/WorldMenu';
 import { LevelProps } from './components/LevelProps';
 import { GameState, useGameStore } from './store/GameStore';
+import { sfx } from './utils/audio';
+import { VRMenuBoard } from './components/VRMenuBoard';
 import { FirstPersonControls } from './components/FirstPersonControls';
 import { InteractionSystem } from './components/InteractionSystem';
-import { WristHUD } from './components/WristHUD';
 import { VRGameOverlay } from './components/VRGameOverlay';
 import { createXRStore, XR, XROrigin } from '@react-three/xr';
 
@@ -24,10 +25,44 @@ const xrStore = createXRStore({
 
 function GameClock() {
   const tick = useGameStore((state) => state.tick);
+  const gameState = useGameStore((state) => state.gameState);
+  // Use -1 as initial so first render triggers the Playing transition
+  const prevGameStateRef = useRef<number>(-1);
 
   useFrame((_, delta) => {
     tick(delta);
   });
+
+  // BGM management: play during gameplay, stop on victory/gameover
+  useEffect(() => {
+    const prev = prevGameStateRef.current;
+    prevGameStateRef.current = gameState;
+
+    if (gameState === GameState.Playing && prev !== GameState.Playing) {
+      // Defer slightly to ensure AudioContext can be created after a user gesture
+      const tryPlay = () => sfx.playBGM();
+      // First time may need a user gesture — attach one-time listener
+      if (prev === -1) {
+        const startOnGesture = () => {
+          tryPlay();
+          document.removeEventListener('pointerdown', startOnGesture);
+          document.removeEventListener('click', startOnGesture);
+        };
+        document.addEventListener('pointerdown', startOnGesture, { once: true });
+        document.addEventListener('click', startOnGesture, { once: true });
+        // Also try immediately in case context is already allowed
+        tryPlay();
+      } else {
+        tryPlay();
+      }
+    } else if (gameState === GameState.Victory) {
+      sfx.stopBGM();
+      if (prev === GameState.Playing) sfx.playLevelComplete();
+    } else if (gameState === GameState.GameOver) {
+      sfx.stopBGM();
+      if (prev === GameState.Playing) sfx.playGameOver();
+    }
+  }, [gameState]);
 
   return null;
 }
@@ -197,12 +232,14 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
   const bestCombo = useGameStore((state) => state.bestCombo);
   const gameState = useGameStore((state) => state.gameState);
   const level = useGameStore((state) => state.level);
+  const difficulty = useGameStore((state) => state.difficulty);
 
   const startTutorial = useGameStore((state) => state.startTutorial);
   const startLevel = useGameStore((state) => state.startLevel);
   const advanceLevel = useGameStore((state) => state.advanceLevel);
   const resetGame = useGameStore((state) => state.resetGame);
   const requestCandyDispense = useGameStore((state) => state.requestCandyDispense);
+  const setDifficulty = useGameStore((state) => state.setDifficulty);
 
   const timeLabel = useMemo(() => {
     if (timeLeft <= 0) {
@@ -215,7 +252,7 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
   }, [timeLeft]);
 
   const statusLabel =
-    gameState === GameState.Victory ? 'Stage Cleared' : gameState === GameState.GameOver ? 'Time Out' : 'In Play';
+    gameState === GameState.Victory ? 'Level Cleared' : gameState === GameState.GameOver ? 'Time Out' : 'In Play';
 
   const statusDotClass =
     gameState === GameState.Victory
@@ -228,16 +265,16 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
     <>
       <div className="hud">
         <div className="hud-panel hud-panel--compact hud-panel--hero">
-          <p className="hud-kicker">Harvest Yard</p>
-          <p className="hud-title">Color Farm</p>
-          <p className="hud-lead">Sort feed, mix colors, and keep the coop running.</p>
+          <p className="hud-kicker">VR Color Circle</p>
+          <p className="hud-title">Color Sorting</p>
+          <p className="hud-lead">Sort and classify colors by level.</p>
           <div className="hud-stats">
             <div className="hud-stat hud-stat--stage">
-              <span className="hud-stat-label">Stage</span>
+              <span className="hud-stat-label">Level</span>
               <span className="hud-stat-value">{level === 0 ? 'Tutorial' : `L${level}`}</span>
             </div>
             <div className="hud-stat hud-stat--score">
-              <span className="hud-stat-label">Candy</span>
+              <span className="hud-stat-label">Score</span>
               <span className="hud-stat-value">
                 {score} / {targetScore}
               </span>
@@ -263,11 +300,17 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
         </div>
 
         <div className="hud-panel hud-panel--actions">
-          <p className="hud-kicker">Barn Board</p>
-          <p className="hud-title hud-title--small">Field Controls</p>
-          <p className="hud-help">Switch fields, drop feed, or restart the run.</p>
+          <p className="hud-kicker">Control Panel</p>
+          <p className="hud-title hud-title--small">Game Controls</p>
+          <p className="hud-help">Select level, spawn balls, or change difficulty.</p>
           <div className="hud-actions">
-            <span className="hud-badge">Playground Mode</span>
+            <span className="hud-badge">Mode: {difficulty === 'easy' ? 'Easy ∞' : 'Hard ⏱'}</span>
+            <button className={`hud-button ${difficulty === 'easy' ? 'hud-button--primary' : 'hud-button--ghost'}`} type="button" onClick={() => setDifficulty('easy')}>
+              Easy
+            </button>
+            <button className={`hud-button ${difficulty === 'hard' ? 'hud-button--danger' : 'hud-button--ghost'}`} type="button" onClick={() => setDifficulty('hard')}>
+              Hard
+            </button>
             <button className="hud-button hud-button--primary" type="button" onClick={onOpenVR}>
               Open VR
             </button>
@@ -275,19 +318,19 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
               Tutorial
             </button>
             <button className="hud-button hud-button--ghost" type="button" onClick={() => startLevel(1)}>
-              Field 1
+              Level 1
             </button>
             <button className="hud-button hud-button--ghost" type="button" onClick={() => startLevel(2)}>
-              Field 2
+              Level 2
             </button>
             <button className="hud-button hud-button--ghost" type="button" onClick={() => startLevel(3)}>
-              Field 3
+              Level 3
             </button>
             <button className="hud-button hud-button--ghost" type="button" onClick={() => advanceLevel()}>
-              Next Field
+              Next Level
             </button>
             <button className="hud-button hud-button--primary" type="button" onClick={() => requestCandyDispense()}>
-              Drop Feed
+              Spawn Ball
             </button>
             <button className="hud-button hud-button--danger" type="button" onClick={() => resetGame()}>
               Restart
@@ -299,11 +342,11 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
       {gameState === GameState.Victory && level < 3 && (
         <div className="overlay overlay--victory">
           <div className="overlay-content">
-            <h1 className="overlay-title">FIELD COMPLETE</h1>
-            <p className="overlay-subtitle">The farm is running smooth. Move on to the next field.</p>
+            <h1 className="overlay-title">LEVEL COMPLETE</h1>
+            <p className="overlay-subtitle">Great job! Move on to the next color level.</p>
             <div className="overlay-actions">
               <button className="hud-button" type="button" onClick={() => advanceLevel()}>
-                Next Stage
+                Next Level
               </button>
             </div>
           </div>
@@ -313,8 +356,8 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
       {gameState === GameState.Victory && level >= 3 && (
         <div className="overlay overlay--victory">
           <div className="overlay-content">
-            <h1 className="overlay-title">HARVEST COMPLETE</h1>
-            <p className="overlay-subtitle">You cleared every field and kept the farm in motion.</p>
+            <h1 className="overlay-title">ALL LEVELS COMPLETE!</h1>
+            <p className="overlay-subtitle">You mastered all color levels — Primary, Secondary, and Tertiary!</p>
             <div className="overlay-actions">
               <button className="hud-button" type="button" onClick={() => resetGame()}>
                 Play Again
@@ -327,8 +370,8 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
       {gameState === GameState.GameOver && (
         <div className="overlay overlay--gameover">
           <div className="overlay-content">
-            <h1 className="overlay-title">BARN PAUSED</h1>
-            <p className="overlay-subtitle">The timer drained before the coop hit the target.</p>
+            <h1 className="overlay-title">TIME'S UP</h1>
+            <p className="overlay-subtitle">The timer ran out before you reached the target score.</p>
             <div className="overlay-actions">
               <button className="hud-button hud-button--danger" type="button" onClick={() => resetGame()}>
                 Try Again
@@ -389,11 +432,14 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
 
         <XR store={xrStore}>
           <XROrigin ref={xrOriginRef} position={[0, 0, 0]} />
-          <WristHUD />
           <VRGameOverlay />
           
           <GameClock />
 
+          {/* Fixed settings board behind the player */}
+          <VRMenuBoard position={[0, 3.5, 14]} rotation={[0, Math.PI, 0]} />
+
+          {/* Info boards on left and right sides */}
           <WorldMenu position={[-14.8, 4, 4]} rotation={[0, Math.PI / 2, 0]} scale={1.3} />
           <ColorGuideBoard position={[14.8, 4, 4]} rotation={[0, -Math.PI / 2, 0]} scale={1.3} />
 
@@ -414,7 +460,7 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
               <BallSpawner position={[-10, 0.45, -6]} rotation={[0, Math.PI / 4, 0]} />
 
               {balls.map((ball) => (
-                <Ball key={ball.id} color={ball.color} position={ball.position} id={ball.id} />
+                <Ball key={ball.id} color={ball.color} position={ball.position} id={ball.id} isMixed={ball.isMixed} />
               ))}
 
             </Physics>

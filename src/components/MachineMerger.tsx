@@ -18,7 +18,7 @@ type MergerProps = {
   position: [number, number, number];
   rotation?: [number, number, number];
   gameState: number;
-  spawnBall: (color: BallColorCode, position: [number, number, number]) => void;
+  spawnBall: (color: BallColorCode, position: [number, number, number], isMixed?: boolean) => void;
   removeBall: (id: string) => void;
 };
 
@@ -145,7 +145,7 @@ function MachineMergerCore({ position, rotation = [0, 0, 0], gameState, spawnBal
           position[1] + outputOffset.y,
           position[2] + outputOffset.z
         ];
-        spawnBall(result, outputPosition);
+        spawnBall(result, outputPosition, true);
         setColorA(BallColor.None);
         setColorB(BallColor.None);
         setIsMerging(false);

@@ -37,14 +37,14 @@ export function VRGameOverlay() {
   const isGameOver = gameState === GameState.GameOver;
   const isAllClear = isVictory && level >= 3;
 
-  const title = isAllClear ? 'HARVEST COMPLETE' : isVictory ? 'FIELD COMPLETE' : 'BARN PAUSED';
+  const title = isAllClear ? 'ALL LEVELS COMPLETE!' : isVictory ? 'LEVEL COMPLETE' : "TIME'S UP";
   const subtitle = isAllClear 
-    ? 'You cleared every field!' 
+    ? 'You mastered all color levels!' 
     : isVictory 
-      ? 'The farm is running smooth.\nMove on to the next field.' 
-      : 'The timer drained before the coop hit the target.';
+      ? 'Great job!\nMove on to the next color level.' 
+      : 'The timer ran out before you reached the target.';
   
-  const buttonText = isAllClear ? 'Play Again' : isVictory ? 'Next Stage' : 'Try Again';
+  const buttonText = isAllClear ? 'Play Again' : isVictory ? 'Next Level' : 'Try Again';
   
   const panelColor = isVictory ? "#10b981" : "#ef4444";
   const panelEmissive = isVictory ? "#059669" : "#b91c1c";

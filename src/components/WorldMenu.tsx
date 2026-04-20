@@ -9,10 +9,10 @@ const clampProgress = (value: number) => Math.min(1, Math.max(0, value));
 export function WorldMenu(props: any) {
   const score = useGameStore((state) => state.score);
   const targetScore = useGameStore((state) => state.targetScore);
-  const timeLeft = useGameStore((state) => state.timeLeft);
   const level = useGameStore((state) => state.level);
   const gameState = useGameStore((state) => state.gameState);
   const combo = useGameStore((state) => state.combo);
+  const difficulty = useGameStore((state) => state.difficulty);
 
   const groupRef = useRef<THREE.Group>(null);
 
@@ -33,7 +33,6 @@ export function WorldMenu(props: any) {
   const statusColor =
     gameState === GameState.Victory ? '#059669' : gameState === GameState.GameOver ? '#dc2626' : '#db2777';
 
-  const timeLabel = timeLeft <= 0 ? '∞' : `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`;
 
   return (
     <group {...props}>
@@ -65,14 +64,14 @@ export function WorldMenu(props: any) {
           {/* --- HEADER UI (ADJUSTED PADDING) --- */}
           <group position={[0, 2.2, 0.03]}>
              <DreiText fontSize={0.4} color="#be185d" fontWeight="900" letterSpacing={0.02}>
-                FARMER'S TO-DO LIST 🐈
-             </DreiText>
+                 COLOR CIRCLE GUIDE 🎨
+              </DreiText>
              <group position={[0, -0.3, 0]}>
                 <DreiText position={[-3.3, 0, 0]} fontSize={0.16} color="#9d174d" fontWeight="800" anchorX="left">
                    LEVEL: {level}
                 </DreiText>
                 <DreiText position={[3.3, 0, 0]} fontSize={0.16} color="#9d174d" fontWeight="800" anchorX="right">
-                   CHRONO: {timeLabel}
+                   MODE: {difficulty === 'hard' ? 'HARD ⏱' : 'EASY ∞'}
                 </DreiText>
              </group>
           </group>
@@ -86,10 +85,10 @@ export function WorldMenu(props: any) {
                    <meshStandardMaterial color="#fef2f2" roughness={1} />
                 </mesh>
                 <DreiText position={[-3.2, 0, 0]} fontSize={0.22} color="#431407" fontWeight="900" anchorX="left">
-                   1. 🍎 HARVESTING
+                   1. 🎱 SPAWN
                 </DreiText>
                 <DreiText position={[-0.4, 0, 0]} fontSize={0.14} color="#9d174d" fontWeight="600" anchorX="left">
-                   Visit the Storage Silo to collect raw units.
+                   Get color balls from the spawner machine.
                 </DreiText>
              </group>
 
@@ -100,10 +99,10 @@ export function WorldMenu(props: any) {
                    <meshStandardMaterial color="#fefce8" roughness={1} />
                 </mesh>
                 <DreiText position={[-3.2, 0, 0]} fontSize={0.22} color="#431407" fontWeight="900" anchorX="left">
-                   2. 👩‍🍳 BREWING
+                   2. 🧪 MIX
                 </DreiText>
                 <DreiText position={[-0.4, 0, 0]} fontSize={0.14} color="#9d174d" fontWeight="600" anchorX="left">
-                   Submit units to Chef Froggy for processing.
+                   Combine two colors at the mixing station.
                 </DreiText>
              </group>
 
@@ -114,20 +113,20 @@ export function WorldMenu(props: any) {
                    <meshStandardMaterial color="#f0fdf4" roughness={1} />
                 </mesh>
                 <DreiText position={[-3.2, 0, 0]} fontSize={0.22} color="#431407" fontWeight="900" anchorX="left">
-                   3. 🎁 DELIVERY
+                   3. ✅ SORT
                 </DreiText>
                 <DreiText position={[-0.4, 0, 0]} fontSize={0.14} color="#9d174d" fontWeight="600" anchorX="left">
-                   Send final units to the distribution center.
+                   Deliver the correct color to the receiver.
                 </DreiText>
              </group>
           </group>
 
           {/* --- BOTTOM DASHBOARD (PULLED INWARD) --- */}
           <group position={[0, -2.1, 0.03]}>
-             {/* Quota Section */}
+             {/* Score Section */}
              <group position={[-3.3, -0.1, 0]}>
                 <DreiText position={[0, 0.35, 0]} fontSize={0.18} color="#be185d" fontWeight="900" anchorX="left">
-                   QUOTA: {score} / {targetScore} 🍎
+                   SCORE: {score} / {targetScore} 🎯
                 </DreiText>
                 {/* Track */}
                 <mesh position={[2.0, 0, 0]}>

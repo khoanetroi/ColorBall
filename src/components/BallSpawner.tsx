@@ -374,6 +374,7 @@ export const BallSpawner = ({
         <CuboidCollider args={[1.5, 2.0, 1.5]} position={[0, 0, 0]} />
         <CuboidCollider args={[0.8, 2.5, 0.8]} position={[0, 1.0, 1.6]} sensor />
       </RigidBody>
+
     </group>
   );
 };
