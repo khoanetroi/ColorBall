@@ -93,13 +93,13 @@ export function VRMenuBoard({ position = [0, 3.5, 8] as [number, number, number]
       {/* Main Board Background */}
       <mesh castShadow receiveShadow>
         <planeGeometry args={[boardW, boardH]} />
-        <meshStandardMaterial color="#f0f4ff" roughness={0.9} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#f0f4ff" roughness={0.15} metalness={0.2} transparent opacity={0.65} side={THREE.DoubleSide} />
       </mesh>
 
       {/* Border */}
       <mesh position={[0, 0, -0.02]}>
         <planeGeometry args={[boardW + 0.3, boardH + 0.3]} />
-        <meshStandardMaterial color="#6366f1" roughness={0.9} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#6366f1" roughness={0.15} metalness={0.2} transparent opacity={0.45} side={THREE.DoubleSide} />
       </mesh>
 
       {/* ========== LOGO SECTION (y = 3.6) ========== */}

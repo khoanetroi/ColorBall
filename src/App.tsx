@@ -436,12 +436,26 @@ function GameHUD({ onOpenVR }: GameHUDProps) {
           
           <GameClock />
 
-          {/* Fixed settings board behind the player */}
-          <VRMenuBoard position={[0, 3.5, 14]} rotation={[0, Math.PI, 0]} />
+          {/* Info boards swapped into new VR Dashboard layout */}
+          
+          {/* Settings board moved to the right side */}
+          <VRMenuBoard position={[14.6, 5.5, 3.0]} rotation={[0, -Math.PI / 2, 0]} />
 
-          {/* Info boards on left and right sides */}
-          <WorldMenu position={[-14.8, 4, 4]} rotation={[0, Math.PI / 2, 0]} scale={1.3} />
-          <ColorGuideBoard position={[14.8, 4, 4]} rotation={[0, -Math.PI / 2, 0]} scale={1.3} />
+          <WorldMenu position={[-14.8, 5.0, 2.5]} rotation={[0, Math.PI / 2, 0]} scale={1.3} />
+
+          {/* Dual Panoramic Info Boards moved behind the player */}
+          <ColorGuideBoard 
+            mode="core"
+            position={[6.1, 5.2, 14.0]} 
+            rotation={[0, Math.PI + 0.12, 0]} 
+            scale={1.3} 
+          />
+          <ColorGuideBoard 
+            mode="special"
+            position={[-6.1, 5.2, 14.0]} 
+            rotation={[0, Math.PI - 0.12, 0]} 
+            scale={1.3} 
+          />
 
           <Suspense fallback={null}>
             <Physics gravity={[0, -9.81, 0]} timeStep={1 / 60}>

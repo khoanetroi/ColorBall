@@ -42,13 +42,13 @@ export function WorldMenu(props: any) {
           {/* Main Paper Plane (Solid Cream) */}
           <mesh castShadow receiveShadow>
              <planeGeometry args={[7.8, 5.2]} />
-             <meshStandardMaterial color="#fffcf2" side={THREE.DoubleSide} roughness={1} />
+             <meshStandardMaterial color="#fffcf2" side={THREE.DoubleSide} transparent opacity={0.65} roughness={0.15} metalness={0.2} />
           </mesh>
 
           {/* Sticker Border (Shocking Pink) */}
           <mesh position={[0, 0, -0.01]}>
              <planeGeometry args={[8.1, 5.5]} />
-             <meshStandardMaterial color="#f472b6" side={THREE.DoubleSide} roughness={1} />
+             <meshStandardMaterial color="#f472b6" side={THREE.DoubleSide} transparent opacity={0.45} roughness={0.15} metalness={0.2} />
           </mesh>
 
           {/* --- WASHI TAPE DECORATIONS (CORNERS) --- */}
