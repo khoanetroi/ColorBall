@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import { RoundedBox, Text } from '@react-three/drei';
-import { BallColor, getSpawnColorsForLevel } from '../store/ColorSystem';
+import { BallColor, getSpawnColorsForLevel, type BallColorCode } from '../store/ColorSystem';
 import { GameState, useGameStore } from '../store/GameStore';
 
 // Balls drop from the higher Pink candy - Adjusted to be further forward and lower for physics stability
@@ -35,6 +35,9 @@ export const BallSpawner = ({
   const level = useGameStore((state) => state.level);
   const spawnColors = getSpawnColorsForLevel(level);
 
+  const colorBagRef = useRef<BallColorCode[]>([]);
+  const lastLevelRef = useRef(level);
+
   const handleMachinePointerDown = useCallback((event: any) => {
     event.stopPropagation();
     requestCandyDispense();
@@ -47,7 +50,23 @@ export const BallSpawner = ({
 
     isDispensingRef.current = true;
 
-    const color = spawnColors[Math.floor(Math.random() * spawnColors.length)] ?? BallColor.Red;
+    // Reset bag if level changes so we spawn the correct level colors
+    if (level !== lastLevelRef.current) {
+      colorBagRef.current = [];
+      lastLevelRef.current = level;
+    }
+
+    // Refill and shuffle the bag if empty (Strict 1-bag system)
+    if (colorBagRef.current.length === 0) {
+      const newBag = [...spawnColors]; // Add exactly 1 of each color
+      for (let i = newBag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newBag[i], newBag[j]] = [newBag[j], newBag[i]];
+      }
+      colorBagRef.current = newBag;
+    }
+
+    const color = colorBagRef.current.pop() ?? BallColor.Red;
     
     // Rotate offset based on spawner rotation
     const rotatedOffset = new THREE.Vector3(...DISPENSE_OFFSET);
@@ -70,7 +89,7 @@ export const BallSpawner = ({
       isDispensingRef.current = false;
       dispenseTimeoutRef.current = null;
     }, 180);
-  }, [gameState, position, rotation, spawnBall, spawnColors]);
+  }, [gameState, level, position, rotation, spawnBall, spawnColors]);
 
   useEffect(() => {
     if (gameState !== GameState.Playing) {

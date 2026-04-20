@@ -53,7 +53,7 @@ const levelTargetColors: Record<number, readonly BallColorCode[]> = {
   0: primaryColors,
   1: primaryColors,
   2: secondaryColors,
-  3: tertiaryColors,
+  3: [...tertiaryColors, ...pastelColors, ...shadeColors],
 };
 
 const colorLabels: Record<BallColorCode, string> = {
